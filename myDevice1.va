@@ -1,0 +1,12 @@
+module simple_gm(p, n, ctrl);
+  inout p, n;
+  input ctrl;
+  electrical p, n;
+  electrical ctrl;
+
+  parameter real gm = 1e-3;
+
+  analog begin
+    I(p, n) <+ gm * V(ctrl) * V(p, n);
+  end
+endmodule
