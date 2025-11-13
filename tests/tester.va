@@ -1,0 +1,8 @@
+module Rbranch(a,b); 
+parameter real R = 5k;
+analog begin
+  V(b) <+ 5;
+  v(a) <+ 6;
+  V(a,b) <+ R * I(a,b);
+end
+endmodule

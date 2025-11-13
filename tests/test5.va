@@ -1,0 +1,16 @@
+`include "disciplines.vams"
+`include "constants.vams"
+
+module tb_opamp;
+  electrical a, b, vout, gnd;
+  parameter real VHI = 1.0;
+  parameter real VLO = 0.0;
+  parameter real TSTEP = 1e-6;
+
+  ideal_opamp dut (.a(a), .b(b), .vout(vout), .gnd(gnd));
+
+  analog begin
+    V(a, gnd) <+ VLO + (VHI - VLO) * (0.5 * (1 + sign(sin(2.0* `M_PI*(1.0/TSTEP)*$abstime))));
+    V(b, gnd) <+ 0.0;
+  end
+endmodule

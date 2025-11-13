@@ -1,0 +1,14 @@
+`include "constants.vams"
+`include "disciplines.vams"
+
+module tb_rc;
+  electrical a, b;
+  inout a, b;
+  parameter real AMP = 1.0;       // amplitude (V)
+  parameter real FREQ = 1e6;      // frequency (Hz)
+
+
+  analog begin
+    V(a, b) <+ AMP * sin(2.0 * `M_PI * FREQ * $abstime);
+  end
+endmodule

@@ -1,0 +1,16 @@
+`include "disciplines.vams"
+`include "constants.vams"
+
+module tb_resistor;
+  inout a, b;
+  electrical a, b;
+  parameter real VDC = 1.0;
+
+  // Device under test: expects ports (a, b)
+
+  analog begin
+    // apply a DC voltage source of VDC between a and b
+    V(a, b) <+ VDC;
+    // current through the DUT will be produced by the DUT and can be probed in simulator
+  end
+endmodule

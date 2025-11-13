@@ -1,0 +1,116 @@
+cmake_minimum_required(VERSION 3.16)
+project(veriloga_frontend LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Option: build parser/generation (default ON). If OFF, we won't run ANTLR or include generated files.
+option(BUILD_WITH_PARSER "Generate and build ANTLR parser" ON)
+
+# vcpkg root (adjust if different)
+set(VCPKG_ROOT "$ENV{HOME}/vcpkg" CACHE PATH "Path to vcpkg root - used to find antlr runtime via vcpkg")
+
+# ANTLR runtime locations (vcpkg layout). Adjust if you install differently.
+set(ANTLR4_INCLUDE_ROOT "${VCPKG_ROOT}/installed/x64-linux/include" CACHE PATH "")
+set(ANTLR4_INCLUDE_SUB  "${ANTLR4_INCLUDE_ROOT}/antlr4-runtime" CACHE PATH "")
+set(ANTLR4_LIBRARY     "${VCPKG_ROOT}/installed/x64-linux/lib/libantlr4-runtime.a" CACHE PATH "")
+
+# -- small AST-only library & test (no ANTLR needed) ---------------------
+file(GLOB_RECURSE AST_SOURCES "${CMAKE_SOURCE_DIR}/src/ast*.cpp" "${CMAKE_SOURCE_DIR}/src/ast*.h")
+add_library(ast_lib STATIC ${AST_SOURCES})
+target_include_directories(ast_lib PUBLIC "${CMAKE_SOURCE_DIR}/src")
+
+# optional tiny test/executable that links the AST only (helpful while developing)
+if(EXISTS "${CMAKE_SOURCE_DIR}/tests/ast_test.cpp")
+  add_executable(ast_test tests/ast_test.cpp)
+  target_link_libraries(ast_test PRIVATE ast_lib)
+  target_include_directories(ast_test PRIVATE "${CMAKE_SOURCE_DIR}/src")
+endif()
+
+# ----------------- Parser and grammar generation (optional) -------------
+if(BUILD_WITH_PARSER)
+  if(NOT DEFINED ANTLR_JAR)
+    message(FATAL_ERROR "BUILD_WITH_PARSER=ON but ANTLR_JAR not provided. Configure with -DANTLR_JAR=/path/to/antlr-4.x-complete.jar")
+  endif()
+
+  # make sure vcpkg runtime is present
+  if(NOT EXISTS "${ANTLR4_INCLUDE_SUB}/antlr4-runtime.h")
+    message(FATAL_ERROR "Could not find antlr4-runtime.h in ${ANTLR4_INCLUDE_SUB}. Adjust VCPKG_ROOT or install runtime.")
+  endif()
+  if(NOT EXISTS "${ANTLR4_LIBRARY}")
+    message(FATAL_ERROR "Could not find antlr4 runtime lib at ${ANTLR4_LIBRARY}. Please install via vcpkg or adjust path.")
+  endif()
+
+  # grammar / generated directories
+  set(GRAMMAR_DIR "${CMAKE_SOURCE_DIR}/grammar")
+  set(ANTLR_GEN_DIR "${CMAKE_SOURCE_DIR}/generated")
+  file(MAKE_DIRECTORY "${ANTLR_GEN_DIR}")
+
+  set(ANTLR_GRAMMARS
+    "${GRAMMAR_DIR}/VerilogLexer.g4"
+    "${GRAMMAR_DIR}/VerilogPreParser.g4"
+    "${GRAMMAR_DIR}/VerilogParser.g4"
+  )
+
+  set(ANTLR_CMD
+    COMMAND ${CMAKE_COMMAND} -E echo "Running ANTLR to generate C++ sources..."
+    COMMAND java -jar ${ANTLR_JAR} -Dlanguage=Cpp -visitor -no-listener -o "${ANTLR_GEN_DIR}" ${ANTLR_GRAMMARS}
+    WORKING_DIRECTORY "${GRAMMAR_DIR}"
+  )
+
+  set(ANTLR_STAMP "${CMAKE_BINARY_DIR}/antlr_generated.stamp")
+  add_custom_command(OUTPUT ${ANTLR_STAMP}
+    ${ANTLR_CMD}
+    COMMAND ${CMAKE_COMMAND} -E touch ${ANTLR_STAMP}
+    DEPENDS ${ANTLR_GRAMMARS}
+    COMMENT "Generating ANTLR C++ files"
+    VERBATIM
+  )
+
+  add_custom_target(antlr_gen DEPENDS ${ANTLR_STAMP})
+
+  # expected generated filenames - adapt to what your grammars actually emit
+  set(GENERATED_SOURCES
+    "${ANTLR_GEN_DIR}/VerilogLexer.cpp"
+    "${ANTLR_GEN_DIR}/VerilogParser.cpp"
+    "${ANTLR_GEN_DIR}/VerilogPreParser.cpp"
+    "${ANTLR_GEN_DIR}/VerilogLexer.h"
+    "${ANTLR_GEN_DIR}/VerilogParser.h"
+    "${ANTLR_GEN_DIR}/VerilogPreParser.h"
+    "${ANTLR_GEN_DIR}/VerilogVisitor.h"
+    "${ANTLR_GEN_DIR}/VerilogBaseVisitor.h"
+    # add others your grammar produces
+  )
+
+  # mark as GENERATED so IDEs don't complain
+  foreach(gf IN LISTS GENERATED_SOURCES)
+    set_source_files_properties("${gf}" PROPERTIES GENERATED TRUE)
+  endforeach()
+
+  # build parser library from generated sources
+  add_library(veriloga_parser STATIC ${GENERATED_SOURCES})
+  target_include_directories(veriloga_parser PUBLIC "${ANTLR_GEN_DIR}" "${ANTLR4_INCLUDE_SUB}" "${ANTLR4_INCLUDE_ROOT}")
+  target_link_libraries(veriloga_parser PUBLIC "${ANTLR4_LIBRARY}")
+
+  add_dependencies(veriloga_parser antlr_gen)
+endif()
+
+# ----------------- final executable (full build) -----------------------
+file(GLOB_RECURSE PROJECT_SRC "${CMAKE_SOURCE_DIR}/src/*.cpp")
+# If you want a smaller set, list explicit sources instead of globbing.
+
+add_executable(vlgc ${PROJECT_SRC})
+
+# always link the ast lib
+target_link_libraries(vlgc PRIVATE ast_lib)
+
+# if parser present, link it too
+if(BUILD_WITH_PARSER)
+  target_link_libraries(vlgc PRIVATE veriloga_parser)
+  add_dependencies(vlgc veriloga_parser)
+endif()
+
+target_include_directories(vlgc PRIVATE "${CMAKE_SOURCE_DIR}/src" "${CMAKE_SOURCE_DIR}/generated")
+
+# install
+install(TARGETS vlgc RUNTIME DESTINATION bin)

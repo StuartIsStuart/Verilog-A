@@ -1,0 +1,7 @@
+module Rbranch(a,b);
+  electrical a,b;
+  parameter real R=5k;
+  analog begin
+    I(a,b) <+ V(a,b)/R;
+  end
+endmodule

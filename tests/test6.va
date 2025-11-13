@@ -1,0 +1,9 @@
+`include "disciplines.vams"
+`include "constants.vams"
+module nl(a,b);
+  inout a,b;
+  electrical a,b;
+  analog begin
+    V(a,b) <+ sin(V(a,b));
+  end
+endmodule

@@ -1,0 +1,17 @@
+`include "disciplines.vams"
+`include "constants.vams"
+
+module tb_diode;
+  electrical a, b;
+  parameter real VSTART = -0.2;
+  parameter real VEND   = 0.8;
+  parameter real TSTEP  = 1e-6;
+  real vdrive;
+
+  diode_dut dut (.a(a), .b(b));
+
+  analog begin
+    vdrive = VSTART + (VEND - VSTART) * ($abstime / TSTEP) * 0;
+    V(a, b) <+ VSTART + (VEND - VSTART) * (0.5 * (1 + sin(2.0 * `M_PI * (1.0/TSTEP) * $abstime)));
+  end
+endmodule
