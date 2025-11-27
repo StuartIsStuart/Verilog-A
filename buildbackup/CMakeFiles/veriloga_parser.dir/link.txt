@@ -1,0 +1,2 @@
+/usr/bin/ar qc libveriloga_parser.a CMakeFiles/veriloga_parser.dir/generated/VerilogLexer.cpp.o CMakeFiles/veriloga_parser.dir/generated/VerilogParser.cpp.o CMakeFiles/veriloga_parser.dir/generated/VerilogParserBaseVisitor.cpp.o CMakeFiles/veriloga_parser.dir/generated/VerilogParserVisitor.cpp.o CMakeFiles/veriloga_parser.dir/generated/VerilogPreParser.cpp.o CMakeFiles/veriloga_parser.dir/generated/VerilogPreParserBaseVisitor.cpp.o CMakeFiles/veriloga_parser.dir/generated/VerilogPreParserVisitor.cpp.o
+/usr/bin/ranlib libveriloga_parser.a
