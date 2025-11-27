@@ -16,8 +16,8 @@ public:
 
     void buildIfNeeded();
 
-    void evaluate(const std::vector<double> &x_current, double t, double dt, const std::vector<double> &prevValues, std::vector<double> &out_y, std::vector<double> &out_J_flat);
-
+    void evaluate(double t, double dt, const std::vector<double> &prevValues, std::vector<double> &out_y, std::vector<double> &out_J_flat);
+    
     int numUnknowns() const { return n; }
     int numResiduals() const { return m; }
 public:
@@ -33,7 +33,7 @@ public:
 private:
     SymbolTable &symtab;
     std::vector<std::shared_ptr<AnalogAssign>> assigns;
-
+    void substituteUserValues();
 
     std::vector<ExprPtr> residualExprs;
     std::vector<int> indIndices;
@@ -45,10 +45,14 @@ private:
 
     int n = 0; //indep vars
     int m = 0; //residuals
-
-    // helper
+   // AnalogBlockInterpreter interpreter_;
     void constructResidualExprs();
-
+    void constructResidualsFromInterpretation();
+    bool containsFreeVariables(const ExprPtr& expr, const std::vector<int>& free_indeps) const;
+    bool exprContainsSymbols(const ExprPtr& expr, const std::unordered_set<std::string>& symbols) const;
+    bool evaluateCondition(const ExprPtr& condition, const SymbolTable& symtab);
+    ExprPtr substituteValuesInExpr(const ExprPtr& expr, const std::unordered_map<std::string, double>& values);
+    double computeResidualNorm(const std::vector<double>& residuals);
     // build the tape (uses zero prev-values & zero initial x for recording; later evaluate numerically)
     void buildTape();
 
@@ -87,6 +91,7 @@ private:
     bool processVNodesPattern(const ExprPtr& L, const ExprPtr& R, ResidualConstructionState& state);
     bool processResistorLikePattern(const ExprPtr& L, const ExprPtr& R, const std::string& nameA, const std::string& nameB, ResidualConstructionState& state);
     bool processGenericBranchPattern(const ExprPtr& L, const ExprPtr& R, const std::string& nameA, const std::string& nameB, ResidualConstructionState& state);
+    bool processCurrentSourcePattern(const ExprPtr& L, const ExprPtr& R, ResidualConstructionState& state);
     void processFallbackResidual(const ExprPtr& L, const ExprPtr& R, ResidualConstructionState& state);
     void collectNeededBranches(ResidualConstructionState& state);
     void buildFinalResidualVector(ResidualConstructionState& state);

@@ -1,9 +1,10 @@
 `include "disciplines.vams"
 `include "constants.vams"
-module nl(a,b);
-  inout a,b;
-  electrical a,b;
+module R(a, b);
+  inout a, b;
+  electrical a, b;
+  parameter real R=5k;
   analog begin
-    V(a,b) <+ sin(V(a,b));
+    I(a,b) <+ (V(a,b)/R);
   end
 endmodule

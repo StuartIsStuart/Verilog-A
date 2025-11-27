@@ -5,7 +5,6 @@
 #include <optional>
 #include <stdexcept>
 
-
 struct Symbol {
     std::string name;
     double value = 0.0;         // parameter or last-known numeric value
@@ -16,14 +15,31 @@ struct Symbol {
     double initialValue = 0.0;     // the initial value
     bool initialFromUser = false;  // true if initial came from user / simulator runtime
     bool initialFromSource = false;// true if initial came from source/AST (parameter, ic-like)
+    bool isFixed = false;
 };
 
 class SymbolTable {
 public:
     SymbolTable() = default;
-
+    void debugPrint(const std::string& label = "") const {
+        std::cout << "SYMBOL TABLE DEBUG" << label << " ===" << std::endl;
+        for (int i = 0; i < (int)symbols.size(); ++i) {
+            const Symbol& s = symbols[i];
+            std::cout << "  [" << i << "] " << s.name 
+                      << " indep=" << s.isIndependent
+                      << " fixed=" << s.isFixed
+                      << " value=" << s.value
+                      << " userInit=" << s.initialFromUser
+                      << " initValue=" << s.initialValue << std::endl;
+        }
+        std::cout << "Independent indices: ";
+        auto indeps = independentIndices();
+        for (int idx : indeps) {
+            std::cout << symbols[idx].name << " ";
+        }
+        std::cout << std::endl;
+    }
     // add symbol or return existing index
-    // (keeps previous behavior)
     int addSymbol(const std::string &name, bool independent=false, double value=0.0) {
         auto it = nameToIndex.find(name);
         if (it != nameToIndex.end()) return it->second;
@@ -43,6 +59,31 @@ public:
         return (it == nameToIndex.end()) ? -1 : it->second;
     }
 
+    // Set fixed flag for a symbol
+    void setFixed(int idx, bool fixed) {
+        if (idx < 0 || idx >= (int)symbols.size()) return;
+        symbols[idx].isFixed = fixed;
+        if (fixed) {
+            symbols[idx].isIndependent = false;  // Fixed nodes are not solved
+        }
+    }
+    
+    void setFixed(const std::string &name, bool fixed) {
+        int idx = find(name);
+        if (idx >= 0) setFixed(idx, fixed);
+    }
+
+    // Check if symbol is fixed
+    bool isFixed(int idx) const {
+        if (idx < 0 || idx >= (int)symbols.size()) return false;
+        return symbols[idx].isFixed;
+    }
+    
+    bool isFixed(const std::string &name) const {
+        int idx = find(name);
+        return (idx >= 0) ? symbols[idx].isFixed : false;
+    }
+
     // getters / setters
     Symbol& operator[](int idx) {
         if (idx < 0 || idx >= (int)symbols.size()) throw std::out_of_range("SymbolTable: index out of range");
@@ -54,11 +95,15 @@ public:
     }
     int size() const { return (int)symbols.size(); }
 
-    // list of independent indices in stable order
+    // list of independent indices in stable order (EXCLUDES FIXED NODES)
     std::vector<int> independentIndices() const {
         std::vector<int> out;
         out.reserve(symbols.size());
-        for (int i = 0; i < (int)symbols.size(); ++i) if (symbols[i].isIndependent) out.push_back(i);
+        for (int i = 0; i < (int)symbols.size(); ++i) {
+            if (symbols[i].isIndependent && !symbols[i].isFixed) {
+                out.push_back(i);
+            }
+        }
         return out;
     }
 

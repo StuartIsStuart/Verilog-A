@@ -1,21 +1,99 @@
 #include "jacobian_builder.h"
 #include <iostream>
+#include <Eigen/Dense>
 #include <sstream>
 #include <algorithm>
 #include <cassert>
 #include <unordered_set>
 #include <functional>
+void JacobianBuilder::substituteUserValues() {
+    std::unordered_map<std::string, double> fixedValues;
+    for (int i = 0; i < symtab.size(); ++i) {
+        const Symbol& sym = symtab[i];
+        if (sym.isFixed) {//only substitute FIXED nodes, not initial guesses
+            fixedValues[sym.name] = sym.value;
+        }
+    }
+    // Substitute in all residual expressions
+    for (auto& expr : residualExprs) {
+        if (expr) {
+            expr = substituteValuesInExpr(expr, fixedValues);
+        }
+    }
+}
+
+ExprPtr JacobianBuilder::substituteValuesInExpr(const ExprPtr& expr, const std::unordered_map<std::string, double>& values) {
+    if (!expr) return expr;
+    
+    // Identifier: substitute if in values map
+    if (auto id = std::dynamic_pointer_cast<IdentifierExpr>(expr)) {
+        auto it = values.find(id->name);
+        if (it != values.end()) {
+            return makeNumber(it->second);
+        }
+        return expr;
+    }
+    
+    // Binary expression: recursively substitute
+    if (auto be = std::dynamic_pointer_cast<BinaryExpr>(expr)) {
+        auto left = substituteValuesInExpr(be->left, values);
+        auto right = substituteValuesInExpr(be->right, values);
+        return std::make_shared<BinaryExpr>(be->op, left, right);
+    }
+    
+    // Unary expression
+    if (auto ue = std::dynamic_pointer_cast<UnaryExpr>(expr)) {
+        auto operand = substituteValuesInExpr(ue->operand, values);
+        return std::make_shared<UnaryExpr>(ue->op, operand);
+    }
+    
+    // Function call
+    if (auto fc = std::dynamic_pointer_cast<FunctionCallExpr>(expr)) {
+        auto newFc = std::make_shared<FunctionCallExpr>(fc->name);
+        for (auto& arg : fc->args) {
+            newFc->args.push_back(substituteValuesInExpr(arg, values));
+        }
+        return newFc;
+    }
+    
+    // Ternary expression
+    if (auto te = std::dynamic_pointer_cast<TernaryExpr>(expr)) {
+        auto cond = substituteValuesInExpr(te->cond, values);
+        auto ifTrue = substituteValuesInExpr(te->ifTrue, values);
+        auto ifFalse = substituteValuesInExpr(te->ifFalse, values);
+        return std::make_shared<TernaryExpr>(cond, ifTrue, ifFalse);
+    }
+    
+    // Number and String expressions remain unchanged
+    return expr;
+}
 //build residual expressions (simple lowering: residual = LHS - RHS for analog assigns)
-JacobianBuilder::JacobianBuilder(SymbolTable &st, const std::vector<std::shared_ptr<AnalogAssign>> &assigns_) : symtab(st), assigns(assigns_){
-    constructResidualExprs(); //prepare independent indices and map
-    indIndices = symtab.independentIndices();
+JacobianBuilder::JacobianBuilder(SymbolTable &st, const std::vector<std::shared_ptr<AnalogAssign>> &assigns_) 
+    : symtab(st), assigns(assigns_) {
+    constructResidualExprs();
+    
+    // Build list of only free (non-fixed) independent variables
+    std::vector<int> all_indeps = symtab.independentIndices();
+    indIndices.clear();
+    
+    for (int idx : all_indeps) {
+        const Symbol& sym = symtab[idx];
+        if (!sym.isFixed) {
+            indIndices.push_back(idx);
+        }
+    }
+    
     n = (int)indIndices.size();
+    
+    // Rebuild symToVarIndex mapping
     symToVarIndex.assign(symtab.size(), -1);
-    for (int i = 0; i < n; ++i) symToVarIndex[indIndices[i]] = i;
+    for (int i = 0; i < n; ++i) {
+        symToVarIndex[indIndices[i]] = i;
+    }
+    
     m = (int)residualExprs.size();
     tapeValid = false;
 }
-
 static ExprPtr replaceICallsNormalise(const ExprPtr &e, std::unordered_map<std::string, std::pair<std::string,std::string>> &branchMap){
     if (!e) return ExprPtr();
     if (auto n = dynamic_cast<NumberExpr*>(e.get())){//NumberExpr
@@ -125,6 +203,7 @@ static ExprPtr replaceVcallsWithDiff(const ExprPtr &e, const std::string &aName,
     //fallback
     return ExprPtr();
 }
+
 void JacobianBuilder::constructResidualExprs(){
     residualExprs.clear();
     
@@ -146,6 +225,8 @@ void JacobianBuilder::constructResidualExprs(){
     
     //Step 4: Build final residual vector
     buildFinalResidualVector(state);
+
+    substituteUserValues();
     
     m = (int)residualExprs.size();
     
@@ -191,7 +272,7 @@ bool JacobianBuilder::processAssignment(size_t index, ResidualConstructionState&
     //Try different patterns in order
     if (processVNodePattern(L, R, state)) return true;
     if (processVNodesPattern(L, R, state)) return true;
-    
+    if (processCurrentSourcePattern(L, R, state)) return true;  // NEW: Handle current sources
     //If no pattern matched, process as fallback
     processFallbackResidual(L, R, state);
     return true;
@@ -248,8 +329,19 @@ ExprPtr JacobianBuilder::negateExpr(const ExprPtr& expr) const {
     return std::make_shared<BinaryExpr>(std::string("*"), makeNumber(-1.0), expr);
 }
 
+// void JacobianBuilder::addToNodeResidual(const std::string& nodeName, const ExprPtr& term, ResidualConstructionState& state){
+//     if (nodeName.empty() || !term) return;
+//     auto it = state.nodeResidualsMap.find(nodeName);
+//     if (it == state.nodeResidualsMap.end()){
+//         state.nodeResidualsMap[nodeName] = term;
+//     } else {
+//         it->second = std::make_shared<BinaryExpr>(std::string("+"), it->second, term);
+//     }
+// }
+
 void JacobianBuilder::addToNodeResidual(const std::string& nodeName, const ExprPtr& term, ResidualConstructionState& state){
     if (nodeName.empty() || !term) return;
+    
     auto it = state.nodeResidualsMap.find(nodeName);
     if (it == state.nodeResidualsMap.end()){
         state.nodeResidualsMap[nodeName] = term;
@@ -257,6 +349,8 @@ void JacobianBuilder::addToNodeResidual(const std::string& nodeName, const ExprP
         it->second = std::make_shared<BinaryExpr>(std::string("+"), it->second, term);
     }
 }
+
+
 //Check for resistor-like pattern: R * I(a,b)
 bool JacobianBuilder::processResistorLikePattern(const ExprPtr& L, const ExprPtr& R, const std::string& nameA, const std::string& nameB, ResidualConstructionState& state){
     BranchAnalyser analyser(state.branchMap);
@@ -306,6 +400,87 @@ bool JacobianBuilder::processResistorLikePattern(const ExprPtr& L, const ExprPtr
     return true;
 }
 
+// bool JacobianBuilder::processGenericBranchPattern(const ExprPtr& L, const ExprPtr& R, const std::string& nameA, const std::string& nameB, ResidualConstructionState& state){
+//     //Generic branch handling: V(a,b) = complex_expression
+//     ExprPtr rhs_transformed = replaceVcallsWithDiff(R, nameA, nameB);
+    
+//     //Create branch symbol I(a,b)
+//     std::ostringstream bss;
+//     bss << "I(" << nameA << "," << nameB << ")";
+//     std::string branchSym = bss.str();
+//     ExprPtr branchId = std::make_shared<IdentifierExpr>(branchSym);
+    
+//     //Stamp KCL: +I into node A, -I into node B
+//     addToNodeResidual(nameA, branchId, state);
+//     addToNodeResidual(nameB, negateExpr(branchId), state);
+    
+//     //Build branch residual = (Va - Vb) - rhs_transformed
+//     auto va = std::make_shared<IdentifierExpr>(nameA);
+//     auto vb = std::make_shared<IdentifierExpr>(nameB);
+//     auto diff = std::make_shared<BinaryExpr>(std::string("-"), va, vb);
+//     ExprPtr branchRes = std::make_shared<BinaryExpr>(std::string("-"), diff, rhs_transformed);
+    
+//     state.pendingBranchResiduals[branchSym] = branchRes;
+//     state.neededBranches.insert(branchSym);
+    
+//     //std::cerr << "created generic branch pattern for " << branchSym << "\n";
+//     return true;
+// }
+bool JacobianBuilder::processCurrentSourcePattern(const ExprPtr& L, const ExprPtr& R, ResidualConstructionState& state){
+    std::string nameA, nameB;
+    std::string branchSym;
+    
+    // Case 1: LHS is a function call I(a,b)
+    if (auto lhsFc = std::dynamic_pointer_cast<FunctionCallExpr>(L)) {
+        std::string fnlower = lhsFc->name;
+        std::transform(fnlower.begin(), fnlower.end(), fnlower.begin(), ::tolower);
+        
+        if ((fnlower == "i") && lhsFc->args.size() >= 2){
+            auto a0 = std::dynamic_pointer_cast<IdentifierExpr>(lhsFc->args[0]);
+            auto a1 = std::dynamic_pointer_cast<IdentifierExpr>(lhsFc->args[1]);
+            if (a0 && a1){
+                nameA = a0->name;
+                nameB = a1->name;
+                std::ostringstream bss;
+                bss << "I(" << nameA << "," << nameB << ")";
+                branchSym = bss.str();
+            }
+        }
+    }
+    // Case 2: LHS is an identifier that represents a branch current (from normalization)
+    else if (auto id = std::dynamic_pointer_cast<IdentifierExpr>(L)) {
+        // Check if this identifier is in our branch map (created by replaceICallsNormalise)
+        auto it = state.branchMap.find(id->name);
+        if (it != state.branchMap.end()) {
+            nameA = it->second.first;
+            nameB = it->second.second;
+            branchSym = id->name;
+        }
+    }
+    
+    if (branchSym.empty()) {
+        return false;
+    }
+    //create branch symbol I(a,b)
+    ExprPtr branchId = std::make_shared<IdentifierExpr>(branchSym);
+    
+    //stamp KCL: +I into node A, -I into node B
+    addToNodeResidual(nameA, branchId, state);
+    addToNodeResidual(nameB, negateExpr(branchId), state);
+    
+    // Build branch residual: I(a,b) - RHS
+    ExprPtr branchRes = std::make_shared<BinaryExpr>(std::string("-"), branchId, R);
+    state.pendingBranchResiduals[branchSym] = branchRes;
+    state.neededBranches.insert(branchSym);
+    
+    return true;
+}
+
+
+
+
+
+
 bool JacobianBuilder::processGenericBranchPattern(const ExprPtr& L, const ExprPtr& R, const std::string& nameA, const std::string& nameB, ResidualConstructionState& state){
     //Generic branch handling: V(a,b) = complex_expression
     ExprPtr rhs_transformed = replaceVcallsWithDiff(R, nameA, nameB);
@@ -318,6 +493,7 @@ bool JacobianBuilder::processGenericBranchPattern(const ExprPtr& L, const ExprPt
     
     //Stamp KCL: +I into node A, -I into node B
     addToNodeResidual(nameA, branchId, state);
+    
     addToNodeResidual(nameB, negateExpr(branchId), state);
     
     //Build branch residual = (Va - Vb) - rhs_transformed
@@ -329,53 +505,68 @@ bool JacobianBuilder::processGenericBranchPattern(const ExprPtr& L, const ExprPt
     state.pendingBranchResiduals[branchSym] = branchRes;
     state.neededBranches.insert(branchSym);
     
-    //std::cerr << "created generic branch pattern for " << branchSym << "\n";
     return true;
 }
-void JacobianBuilder::buildFinalResidualVector(ResidualConstructionState& state){
-    //Convert nodeResidualsMap into vector indexed by symbol index
-    std::vector<ExprPtr> nodeResiduals(symtab.size(), nullptr);
+
+
+// void JacobianBuilder::buildFinalResidualVector(ResidualConstructionState& state) {
+//     // Convert nodeResidualsMap into vector indexed by symbol index
+//     std::vector<ExprPtr> nodeResiduals(symtab.size(), nullptr);
     
-    for (auto& kv : state.nodeResidualsMap){
+//     for (auto& kv : state.nodeResidualsMap) {
+//         const std::string& nodeName = kv.first;
+//         ExprPtr expr = kv.second;
+//         int idx = symtab.find(nodeName);
+//         if (idx >= 0 && idx < (int)nodeResiduals.size()) {
+//             if (!nodeResiduals[idx]) {
+//                 nodeResiduals[idx] = expr;
+//             } else {
+//                 nodeResiduals[idx] = std::make_shared<BinaryExpr>(std::string("+"), nodeResiduals[idx], expr);
+//             }
+//         }
+//     }
+void JacobianBuilder::buildFinalResidualVector(ResidualConstructionState& state) {
+    
+    // Convert nodeResidualsMap into vector indexed by symbol index
+    std::vector<ExprPtr> nodeResiduals(symtab.size(), nullptr);
+    for (auto& kv : state.nodeResidualsMap) {
         const std::string& nodeName = kv.first;
         ExprPtr expr = kv.second;
         int idx = symtab.find(nodeName);
-        if (idx >= 0 && idx < (int)nodeResiduals.size()){
-            if (!nodeResiduals[idx]){
+        if (idx >= 0 && idx < (int)nodeResiduals.size()) {
+            if (!nodeResiduals[idx]) {
                 nodeResiduals[idx] = expr;
             } else {
                 nodeResiduals[idx] = std::make_shared<BinaryExpr>(std::string("+"), nodeResiduals[idx], expr);
             }
-        } else {
-            //std::cerr << "warning: node '" << nodeName << "' not present in symtab; skipping its node residual\n";
         }
-    }
-    
-    //Place pending branch residuals
-    for (auto& kv : state.pendingBranchResiduals){
+    }    
+
+
+
+    // Place pending branch residuals
+    for (auto& kv : state.pendingBranchResiduals) {
         const std::string& bn = kv.first;
         ExprPtr res = kv.second;
         int idx = symtab.find(bn);
-        if (idx >= 0 && idx < (int)nodeResiduals.size()){
-            if (!nodeResiduals[idx]){
+        if (idx >= 0 && idx < (int)nodeResiduals.size()) {
+            if (!nodeResiduals[idx]) {
                 nodeResiduals[idx] = res;
             } else {
                 nodeResiduals[idx] = std::make_shared<BinaryExpr>(std::string("+"), nodeResiduals[idx], res);
             }
-            //std::cerr << "placed pending branch-residual into nodeResiduals[" << idx << "] for " << bn << "\n";
         } else {
             state.fallbackResiduals.push_back(res);
-            //std::cerr << "pending branch symbol " << bn << " not found in symtab; pushed to fallback\n";
         }
     }
     
-    //Process branch-definition residuals
-    for (auto& a : assigns){
+    // Process branch-definition residuals
+    for (auto& a : assigns) {
         if (!a || !a->lhs) continue;
-        if (auto lhsFcOrig = std::dynamic_pointer_cast<FunctionCallExpr>(a->lhs)){
+        if (auto lhsFcOrig = std::dynamic_pointer_cast<FunctionCallExpr>(a->lhs)) {
             std::string fnlower = lhsFcOrig->name;
             std::transform(fnlower.begin(), fnlower.end(), fnlower.begin(), ::tolower);
-            if (fnlower == "i" && lhsFcOrig->args.size() >= 2){
+            if (fnlower == "i" && lhsFcOrig->args.size() >= 2) {
                 auto aa = std::dynamic_pointer_cast<IdentifierExpr>(lhsFcOrig->args[0]);
                 auto bb = std::dynamic_pointer_cast<IdentifierExpr>(lhsFcOrig->args[1]);
                 if (!aa || !bb) continue;
@@ -384,94 +575,102 @@ void JacobianBuilder::buildFinalResidualVector(ResidualConstructionState& state)
                 oss << "I(" << aa->name << "," << bb->name << ")";
                 std::string branchSym = oss.str();
                 
-                //Skip if branch was eliminated
-                if (state.eliminatedBranches.count(branchSym)){
-                    //std::cerr << "  skipping branch-residual for eliminated branch " << branchSym << "\n";
+                // Skip if branch was eliminated
+                if (state.eliminatedBranches.count(branchSym) || state.pendingBranchResiduals.count(branchSym)) {
                     continue;
                 }
                 
-                //Produce branch residual: I(a,b) - rhs_transformed
+                // Produce branch residual: I(a,b) - rhs_transformed
                 ExprPtr rhs_orig = a->rhs ? a->rhs : makeNumber(0.0);
                 ExprPtr rhs_trans = replaceVcallsWithDiff(rhs_orig, aa->name, bb->name);
                 ExprPtr branchId = std::make_shared<IdentifierExpr>(branchSym);
                 ExprPtr res = std::make_shared<BinaryExpr>(std::string("-"), branchId, rhs_trans);
                 
                 int idx = symtab.find(branchSym);
-                if (idx >= 0 && idx < (int)nodeResiduals.size()){
-                    if (!nodeResiduals[idx]){
+                if (idx >= 0 && idx < (int)nodeResiduals.size()) {
+                    if (!nodeResiduals[idx]) {
                         nodeResiduals[idx] = res;
                     } else {
                         nodeResiduals[idx] = std::make_shared<BinaryExpr>(std::string("+"), nodeResiduals[idx], res);
                     }
-                    //std::cerr << "placed branch-residual into nodeResiduals[" << idx << "] for " << branchSym << "\n";
                 } else {
                     state.fallbackResiduals.push_back(res);
-                    //std::cerr << "branch symbol " << branchSym << " not in symtab; pushed to fallback\n";
                 }
             }
         }
     }
     
-    //KCL branch handler
-    for (auto& a : assigns){
-        if (!a || !a->lhs) continue;
-        if (auto lhsFcOrig = std::dynamic_pointer_cast<FunctionCallExpr>(a->lhs)){
-            std::string fnlower = lhsFcOrig->name;
-            std::transform(fnlower.begin(), fnlower.end(), fnlower.begin(), ::tolower);
-            if (fnlower == "i" && lhsFcOrig->args.size() >= 2){
-                auto aa = std::dynamic_pointer_cast<IdentifierExpr>(lhsFcOrig->args[0]);
-                auto bb = std::dynamic_pointer_cast<IdentifierExpr>(lhsFcOrig->args[1]);
-                if (!aa || !bb) continue;
-                
-                std::ostringstream oss;
-                oss << "I(" << aa->name << "," << bb->name << ")";
-                std::string branchSym = oss.str();
-                
-                //Skip if branch was eliminated
-                if (state.eliminatedBranches.count(branchSym)){
-                    continue;
-                }
-                
-                //ADD KCL CONTRIBUTIONS
-                ExprPtr branchId = std::make_shared<IdentifierExpr>(branchSym);
-                
-                //+I(a,b) at node a
-                int idxA = symtab.find(aa->name);
-                if (idxA >= 0 && idxA < (int)nodeResiduals.size()){
-                    if (!nodeResiduals[idxA]){
-                        nodeResiduals[idxA] = branchId;
-                    } else {
-                        nodeResiduals[idxA] = std::make_shared<BinaryExpr>(std::string("+"), nodeResiduals[idxA], branchId);
-                    }
-                }
-                
-                //-I(a,b) at node b  
-                int idxB = symtab.find(bb->name);
-                if (idxB >= 0 && idxB < (int)nodeResiduals.size()){
-                    ExprPtr negBranchId = negateExpr(branchId);
-                    if (!nodeResiduals[idxB]){
-                        nodeResiduals[idxB] = negBranchId;
-                    } else {
-                        nodeResiduals[idxB] = std::make_shared<BinaryExpr>(std::string("+"), nodeResiduals[idxB], negBranchId);
-                    }
-                }
-            }
+    //Build list of only free independent variables
+    std::vector<int> free_indeps;
+    auto all_indeps = symtab.independentIndices();
+    for (int idx : all_indeps) {
+        // Include ALL independent variables, even those with initial guesses
+        // Only exclude FIXED nodes (which are handled separately)
+        if (!symtab[idx].isFixed) {
+            free_indeps.push_back(idx);
         }
     }
-    //Build final residual vector
-    std::vector<int> indeps = symtab.independentIndices();
-    for (int idx : indeps){
-        if (idx >= 0 && idx < (int)nodeResiduals.size() && nodeResiduals[idx]){
+    
+    // Build final residual vector - ONLY for free variables
+    for (int idx : free_indeps) {
+        if (idx >= 0 && idx < (int)nodeResiduals.size() && nodeResiduals[idx]) {
             residualExprs.push_back(nodeResiduals[idx]);
         } else {
             residualExprs.push_back(makeNumber(0.0));
         }
     }
     
-    //Append fallback residuals
-    for (auto& r : state.fallbackResiduals){
-        residualExprs.push_back(r);
+    // Append fallback residuals that still contain free variables
+    for (auto& r : state.fallbackResiduals) {
+        // Check if this fallback residual contains any free variables
+        if (containsFreeVariables(r, free_indeps)) {
+            residualExprs.push_back(r);
+        }
     }
+}
+
+// Helper function to check if an expression contains free variables
+bool JacobianBuilder::containsFreeVariables(const ExprPtr& expr, const std::vector<int>& free_indeps) const {
+    if (!expr) return false;
+    
+    // Convert free_indeps to a set of symbol names for easy lookup
+    std::unordered_set<std::string> free_symbols;
+    for (int idx : free_indeps) {
+        free_symbols.insert(symtab[idx].name);
+    }
+    
+    return exprContainsSymbols(expr, free_symbols);
+}
+
+bool JacobianBuilder::exprContainsSymbols(const ExprPtr& expr, const std::unordered_set<std::string>& symbols) const {
+    if (!expr) return false;
+    
+    if (auto id = std::dynamic_pointer_cast<IdentifierExpr>(expr)) {
+        return symbols.count(id->name) > 0;
+    }
+    
+    if (auto be = std::dynamic_pointer_cast<BinaryExpr>(expr)) {
+        return exprContainsSymbols(be->left, symbols) || exprContainsSymbols(be->right, symbols);
+    }
+    
+    if (auto ue = std::dynamic_pointer_cast<UnaryExpr>(expr)) {
+        return exprContainsSymbols(ue->operand, symbols);
+    }
+    
+    if (auto fc = std::dynamic_pointer_cast<FunctionCallExpr>(expr)) {
+        for (auto& arg : fc->args) {
+            if (exprContainsSymbols(arg, symbols)) return true;
+        }
+        return false;
+    }
+    
+    if (auto te = std::dynamic_pointer_cast<TernaryExpr>(expr)) {
+        return exprContainsSymbols(te->cond, symbols) || 
+               exprContainsSymbols(te->ifTrue, symbols) || 
+               exprContainsSymbols(te->ifFalse, symbols);
+    }
+    
+    return false;
 }
 //BranchAnalyser implementation
 bool JacobianBuilder::BranchAnalyser::isBranchIdentifier(const ExprPtr& e, const std::string& targetA, const std::string& targetB) const {
@@ -648,35 +847,36 @@ void JacobianBuilder::buildTape(){
 }
 
 
-//public build-if-needed (rebuild when topology or independent set changes)
+//public build if needed (rebuild when topology or independent set changes)
 void JacobianBuilder::buildIfNeeded(){
     if (!tapeValid) buildTape();
 }
 
+double JacobianBuilder::computeResidualNorm(const std::vector<double>& residuals) {
+    double sum = 0.0;
+    for (double r : residuals) {
+        sum += r * r;
+    }
+    return std::sqrt(sum);
+}
 
 //evaluate numeric residuals & jacobian
-void JacobianBuilder::evaluate(const std::vector<double> &x_current, double t, double dt, const std::vector<double> &prevValues, std::vector<double> &out_y, std::vector<double> &out_J_flat){
+void JacobianBuilder::evaluate(double t, double dt, const std::vector<double> &prevValues, std::vector<double> &out_y, std::vector<double> &out_J_flat){
+    std::vector<double> x_current(n);
+    for (int i = 0; i < n; ++i) {
+        int sym_idx = indIndices[i];
+        x_current[i] = symtab[sym_idx].value;
+        //std::cout << "Initial guess: " << symtab[sym_idx].name << " = " << x_current[i] << std::endl;
+    }
     if ((int)x_current.size() != n){
         throw std::runtime_error("JacobianBuilder::evaluate: x_current size mismatch");
     }
-    //std::vector<double> ax_test(n, 0.0);
-    //find the var index of the branch symbol
-    //int branchSymIdx = symtab.find("I(a,b)"); //adjust name if needed
-    //int varPos = (branchSymIdx >= 0 && branchSymIdx < (int)symToVarIndex.size()) ? symToVarIndex[branchSymIdx] : -1;
-    //if (varPos >= 0){
-    //    ax_test[varPos] = 123.45;
-    //    double prevDummy = 0.0;
-    //    double val = evalExpr<double>( residualExprs[varPos], ax_test, symToVarIndex, std::vector<double>(symtab.size(),0.0), 1.0 );
-    //    std::cerr << "DEBUG evalExpr<double> branch residual with I=123.45 -> " << val << "\n";
-    //} else {
-    //    std::cerr << "DEBUG branch symbol not mapped to varPos (varPos=" << varPos << ")\n";
-    //}
 
     buildIfNeeded();
 
     //forward evaluation (0th order)
     out_y = f.Forward(0, x_current);
-    //dense jacobian
+    //dense jacobian. Maybe switch to sparse?
     out_J_flat = f.Jacobian(x_current);
 }
 
@@ -693,6 +893,7 @@ T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const st
     }
 
     //IdentifierExpr
+    // In JacobianBuilder::evalExpr, in the IdentifierExpr section:
     if (auto id = dynamic_cast<IdentifierExpr*>(e.get())){
         const std::string &name = id->name;
         int idx = symtab.find(name);
@@ -707,10 +908,10 @@ T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const st
             }
         } else {
             //unknown identifier treat as zero and warn
+            std::cout << "WARNING: Unknown identifier '" << name << "'" << std::endl;
             return asT(0.0);
         }
     }
-
     //StringExpr treat as zero
     if (auto se = dynamic_cast<StringExpr*>(e.get())){
         return asT(0.0);

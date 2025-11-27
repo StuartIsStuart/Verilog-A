@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/stuart/Documents/VA/Verilog-A/generated -I/home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime -I/home/stuart/vcpkg/installed/x64-linux/include
+CXX_INCLUDES = -I/home/stuart/Documents/VA/Verilog-A/generated -I/home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime -I/home/stuart/vcpkg/installed/x64-linux/include -isystem /usr/include/eigen3
 
 CXX_FLAGS = -O3 -DNDEBUG -std=gnu++17
 

@@ -1,8 +1,13 @@
-module Rbranch(a,b); 
-parameter real R = 5k;
-analog begin
-  V(b) <+ 5;
-  v(a) <+ 6;
-  V(a,b) <+ R * I(a,b);
-end
+module conditional_with_vars(a, b);
+    electrical a, b;
+    parameter R = 1000;
+    parameter mode = 1;
+    analog begin
+        if (V(a,b) > 10) begin
+            current_val = R * I(a,b);
+        end else begin
+            current_val = I(a,b) * (R*5); 
+        end
+      V(a,b) <+ current_val;
+    end
 endmodule

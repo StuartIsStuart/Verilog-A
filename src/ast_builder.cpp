@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <any>
 
 using namespace antlrcpp;
 using namespace antlr4;
@@ -11,6 +12,95 @@ using namespace antlr4;
 std::shared_ptr<AnalogBlock> currentAnalogBlock = nullptr;
 
 std::shared_ptr<ModuleDecl> currentModule;
+std::string ASTBuilder::extractVariableName(VerilogParser::Variable_lvalueContext *ctx) {
+    if (!ctx) return "";
+    
+    // Handle hierarchical_identifier case
+    if (ctx->hierarchical_identifier()) {
+        return ctx->hierarchical_identifier()->getText();
+    }
+    
+    // Handle the concatenation case - in the grammar, it's '{' variable_lvalue (',' variable_lvalue)* '}'
+    // We'll just take the first one for simplicity
+    if (!ctx->variable_lvalue().empty()) {
+        return extractVariableName(ctx->variable_lvalue(0));
+    }
+    
+    return "";
+}
+
+antlrcpp::Any ASTBuilder::visitReal_declaration(VerilogParser::Real_declarationContext *ctx) {
+    // The grammar for real_type is:
+    // real_identifier dimension* | real_identifier '=' constant_expression
+    
+    if (ctx->list_of_real_identifiers()) {
+        auto list = ctx->list_of_real_identifiers();
+        for (auto realType : list->real_type()) {
+            std::string varName = realType->real_identifier()->getText();
+            
+            // Check if there's an initializer by looking for '=' in the children
+            bool hasInitializer = false;
+            ExprPtr initExpr = nullptr;
+            
+            for (size_t i = 0; i < realType->children.size(); ++i) {
+                if (realType->children[i]->getText() == "=") {
+                    hasInitializer = true;
+                    // The next child should be the expression
+                    if (i + 1 < realType->children.size()) {
+                        auto exprAny = visit(realType->children[i + 1]);
+                        initExpr = anyToExpr(exprAny);
+                    }
+                    break;
+                }
+            }
+            
+            if (hasInitializer && initExpr) {
+                auto varAssign = std::make_shared<VarAssign>();
+                varAssign->varName = varName;
+                varAssign->expr = initExpr;
+                currentVarAssigns.push_back(varAssign);
+            }
+        }
+    }
+    
+    return visitChildren(ctx);
+}
+
+antlrcpp::Any ASTBuilder::visitBlocking_assignment(VerilogParser::Blocking_assignmentContext *ctx) {
+    auto varAssign = std::make_shared<VarAssign>();
+    varAssign->varName = extractVariableName(ctx->variable_lvalue());
+    if (ctx->expression()) {
+        auto exprAny = visit(ctx->expression());
+        varAssign->expr = anyToExpr(exprAny);
+    }
+    
+    currentVarAssigns.push_back(varAssign);
+    return antlrcpp::Any(static_cast<AnalogStmtPtr>(varAssign));
+}
+
+antlrcpp::Any ASTBuilder::visitNonblocking_assignment(VerilogParser::Nonblocking_assignmentContext *ctx) {
+    // Nonblocking assignment: variable_lvalue '<=' delay_or_event_control? expression
+    // For analog blocks, we'll treat nonblocking the same as blocking
+    auto varAssign = std::make_shared<VarAssign>();
+    
+    varAssign->varName = extractVariableName(ctx->variable_lvalue());
+    
+    if (ctx->expression()) {
+        auto exprAny = visit(ctx->expression());
+        varAssign->expr = anyToExpr(exprAny);
+    }
+    
+    currentVarAssigns.push_back(varAssign);
+    
+    return antlrcpp::Any(static_cast<AnalogStmtPtr>(varAssign));
+}
+
+antlrcpp::Any ASTBuilder::visitVariable_assignment(VerilogParser::Variable_assignmentContext *ctx) {
+    // This method might not be needed if the grammar doesn't use this rule
+    // For now, just visit children
+    return visitChildren(ctx);
+}
+
 static double applyUnitMultiplier(double value, const std::optional<std::string> &unitOpt) {
   if (!unitOpt) return value;
   std::string u = *unitOpt;
@@ -26,28 +116,41 @@ static double applyUnitMultiplier(double value, const std::optional<std::string>
   return value;
 }
 
-// define currentAnalogBlock at top of this cpp:
-
 antlrcpp::Any ASTBuilder::visitAnalog_construct(VerilogParser::Analog_constructContext *ctx) {
-  // Create a block, attach to module, and visit children so assignments are discovered
-  //std::cerr << "ANALOGBLOCK: " << ctx->getText().substr(0,80) << "\n";
-  auto block = std::make_shared<AnalogBlock>();
-  if (currentModule) {
-    currentModule->analog_blocks.push_back(block);
-  } else {
-    //std::cerr << "Analog block outside module\n";
-  }
+    auto block = std::make_shared<AnalogBlock>();
+    
+    if (currentModule) {
+        currentModule->analog_blocks.push_back(block);
+    }
 
-  // mark it current so visitAnalog_assignment can push into it
-  auto prev = currentAnalogBlock;
-  currentAnalogBlock = block;
+    // Clear current variable assignments before processing this block
+    currentVarAssigns.clear();
+    
+    // Set as current analog block
+    auto prev = currentAnalogBlock;
+    currentAnalogBlock = block;
 
-  // descend (this will call visitStatement / visitAnalog_assignment etc.)
-  visitChildren(ctx);
+    // Visit the statement (which could be a seq_block containing multiple statements)
+    if (ctx->statement()) {
+        auto stmtAny = visit(ctx->statement());
+        AnalogStmtPtr stmt = anyToStmt(stmtAny);
+        if (stmt) {
+            // If it's a block statement, extract its statements
+            if (auto blockStmt = std::dynamic_pointer_cast<AnalogBlockStmt>(stmt)) {
+                block->stmts = blockStmt->stmts;
+            } else {
+                // Single statement
+                block->stmts.push_back(stmt);
+            }
+        }
+    }
+    
+    // DON'T add currentVarAssigns here - they're already collected through the normal visitor pattern
+    // The blocking_assignment visitor already returns the VarAssign node which gets added to the block
 
-  // restore
-  currentAnalogBlock = prev;
-  return antlrcpp::Any(block);
+    // Restore previous analog block
+    currentAnalogBlock = prev;
+    return antlrcpp::Any(block);
 }
 
 // -- helper to trim
@@ -76,7 +179,6 @@ static std::pair<double, std::optional<std::string>> parseNumberWithUnit(const s
         if (!uni.empty()) return { val, std::optional<std::string>(uni) };
         return { val, std::nullopt };
     }
-    // fallback: try stod on whole text
     try {
         double v = std::stod(text);
         return { v, std::nullopt };
@@ -122,7 +224,6 @@ antlrcpp::Any ASTBuilder::visitModule_declaration(VerilogParser::Module_declarat
     return antlrcpp::Any(mod);
 }
 
-
 antlrcpp::Any ASTBuilder::visitAnalog_assignment(VerilogParser::Analog_assignmentContext *ctx) {
     //ASSIGNMENT: function_ call '<+' delay_or_event_control? expression
     // LHS is function_call, RHS is expression
@@ -145,18 +246,28 @@ antlrcpp::Any ASTBuilder::visitAnalog_assignment(VerilogParser::Analog_assignmen
     auto assign = std::make_shared<AnalogAssign>();
     assign->lhs = lhs;
     assign->rhs = rhs;
+    
     if (currentAnalogBlock) {
-        currentAnalogBlock->assigns.push_back(assign);
-    } else if (currentModule) {
-        currentModule->analog_assigns.push_back(assign);
+        // Add to current analog block's statements
+        currentAnalogBlock->stmts.push_back(assign);
+    } else if (currentModule && !currentModule->analog_blocks.empty()) {
+        // Add to the last analog block in the module
+        currentModule->analog_blocks.back()->stmts.push_back(assign);
     } else {
-        // fallback: keep builder-level list only if you must
-        analog_assigns.push_back(assign);
+        // Create a new analog block and add it
+        auto block = std::make_shared<AnalogBlock>();
+        block->stmts.push_back(assign);
+        if (currentModule) {
+            currentModule->analog_blocks.push_back(block);
+        }
+        // If no current module, we can't do much - idk maybe log a warning
+        // std::cerr << "Warning: analog assignment outside module context\n";
     }
+    
     //std::cerr << "[ASTBuilder] captured analog assignment:\n";
     //assign->dump(std::cerr, 2);
-
-    return antlrcpp::Any(assign);
+    
+    return antlrcpp::Any(static_cast<AnalogStmtPtr>(assign));
 }
 
 antlrcpp::Any ASTBuilder::visitFunction_call(VerilogParser::Function_callContext *ctx) {
@@ -417,4 +528,111 @@ antlrcpp::Any ASTBuilder::visitNature_declaration(VerilogParser::Nature_declarat
   }
   this->natures.push_back(n);
   return antlrcpp::Any(n);
+}
+// Add this helper function
+// Add this helper function
+ExprPtr ASTBuilder::anyToExpr(const antlrcpp::Any &a) {
+    if (!a.has_value()) return nullptr;
+    try {
+        // Use std::any_cast for antlrcpp::Any
+        return std::any_cast<ExprPtr>(a);
+    } catch (const std::exception& e) {
+        std::cerr << "anyToExpr conversion failed: " << e.what() << "\n";
+        return nullptr;
+    }
+}
+
+AnalogStmtPtr ASTBuilder::anyToStmt(const antlrcpp::Any &a) {
+    if (!a.has_value()) return nullptr;
+    try {
+        return std::any_cast<AnalogStmtPtr>(a);
+    } catch (const std::bad_any_cast&) {
+        // Try to cast from AnalogAssign to AnalogStmtPtr
+        try {
+            auto assign = std::any_cast<std::shared_ptr<AnalogAssign>>(a);
+            return std::static_pointer_cast<AnalogStmt>(assign);
+        } catch (const std::bad_any_cast&) {
+            std::cerr << "Failed to convert Any to AnalogStmtPtr\n";
+            return nullptr;
+        }
+    }
+}
+
+antlrcpp::Any ASTBuilder::visitConditional_statement(VerilogParser::Conditional_statementContext *ctx) {
+    auto ifStmt = std::make_shared<AnalogIf>();
+    
+    // Get condition
+    if (ctx->expression()) {
+        auto condAny = visit(ctx->expression());
+        ifStmt->condition = anyToExpr(condAny);
+    }
+    
+    // Get then branch
+    if (ctx->statement_or_null(0)) {
+        auto thenAny = visit(ctx->statement_or_null(0));
+        AnalogStmtPtr thenStmt = anyToStmt(thenAny);
+        if (thenStmt) {
+            ifStmt->thenStmts.push_back(thenStmt);
+        }
+    }
+    
+    // Get else branch if it exists
+    if (ctx->statement_or_null().size() > 1 && ctx->statement_or_null(1)) {
+        auto elseAny = visit(ctx->statement_or_null(1));
+        AnalogStmtPtr elseStmt = anyToStmt(elseAny);
+        if (elseStmt) {
+            ifStmt->elseStmts.push_back(elseStmt);
+        }
+    }
+    
+    return antlrcpp::Any(static_cast<AnalogStmtPtr>(ifStmt));
+}
+
+antlrcpp::Any ASTBuilder::visitSeq_block(VerilogParser::Seq_blockContext *ctx) {
+    auto block = std::make_shared<AnalogBlockStmt>();
+    
+    // Visit all statements in the block
+    for (auto stmtCtx : ctx->statement()) {
+        auto stmtAny = visit(stmtCtx);
+        AnalogStmtPtr stmt = anyToStmt(stmtAny);
+        if (stmt) {
+            block->stmts.push_back(stmt);
+        }
+    }
+    
+    return antlrcpp::Any(static_cast<AnalogStmtPtr>(block));
+}
+
+antlrcpp::Any ASTBuilder::visitStatement(VerilogParser::StatementContext *ctx) {
+    // Handle different types of statements
+    
+    if (ctx->analog_assignment()) {
+        return visitAnalog_assignment(ctx->analog_assignment());
+    }
+    else if (ctx->blocking_assignment()) {
+        return visitBlocking_assignment(ctx->blocking_assignment());
+    }
+    else if (ctx->nonblocking_assignment()) {
+        return visitNonblocking_assignment(ctx->nonblocking_assignment());
+    }
+    else if (ctx->conditional_statement()) {
+        return visitConditional_statement(ctx->conditional_statement());
+    }
+    else if (ctx->seq_block()) {
+        return visitSeq_block(ctx->seq_block());
+    }
+    // else if (ctx->variable_assignment()) {
+    //     // If this rule exists, use it
+    //     return visitVariable_assignment(ctx->variable_assignment());
+    // }
+    
+    // Default: visit children
+    return visitChildren(ctx);
+}
+antlrcpp::Any ASTBuilder::visitStatement_or_null(VerilogParser::Statement_or_nullContext *ctx) {
+    if (ctx->statement()) {
+        return visit(ctx->statement());
+    }
+    // Handle null statement (just a semicolon)
+    return antlrcpp::Any(); // Return empty for null statement
 }

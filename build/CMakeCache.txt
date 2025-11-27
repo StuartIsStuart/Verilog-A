@@ -189,6 +189,9 @@ CMAKE_TOOLCHAIN_FILE:FILEPATH=/home/stuart/vcpkg/scripts/buildsystems/vcpkg.cmak
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+//The directory containing a CMake configuration file for Eigen3.
+Eigen3_DIR:PATH=/usr/share/eigen3/cmake
+
 //Automatically copy dependencies into the output directory for
 // executables.
 VCPKG_APPLOCAL_DEPS:BOOL=ON

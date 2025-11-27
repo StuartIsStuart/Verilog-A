@@ -1,7 +1,47 @@
-module Rbranch(a,b);
-  electrical a,b;
-  parameter real R=5k;
+`include "constants.vams"
+`include "disciplines.vams"
+
+module mosfet(d, g, s, b);
+  inout d, g, s, b;
+  electrical d, g, s, b;
+
+  parameter real W     = 1e-6;
+  parameter real L     = 1e-6;
+  parameter real kp    = 1e-4;
+
+  parameter real vth0  = 0.7;
+  parameter real lambda = 0.0;
+  parameter real gamma  = 0.0;
+  parameter real phi    = 0.6;
+
+  parameter real Is    = 0;
+  parameter real beta = 1e-4;                // device transconductance parameter
+  parameter real Vth = 0;                 // effective threshold
+  parameter real Veff = 0;                // Vgs - Vth
+  parameter real Ids = 0;                 // drain->sourc
   analog begin
-    I(a,b) <+ V(a,b)/R;
+    Vth = vth0;
+    if (gamma > 0.0) begin
+      Vth = vth0 + gamma * (sqrt(phi + V(s,b)) - sqrt(phi));
+    end
+
+    // simple quadratic/triode model with channel-length modulation
+    if (V(g,s) <= Vth) begin
+      // device off (simple approximation) -- adds tiny leakage if Is set
+      Ids = Is * (exp(V(g,s)/0.1) - 1.0);
+    end else begin
+      Veff = V(g,s) - Vth;
+      if (V(d,s) <= Veff) begin
+        // triode (linear) region
+        Ids = beta * ((V(g,s) - Vth) * V(d,s) - 0.5 * V(d,s) * V(d,s)) * (1.0 + lambda * V(d,s));
+      end else begin
+        // saturation region
+        Ids = 0.5 * beta * (V(g,s) - Vth) * (V(g,s) - Vth) * (1.0 + lambda * V(d,s));
+      end
+    end
+
+    I(d,s) <+ Ids;
+    I(g,b) <+ 0.0;
   end
+
 endmodule

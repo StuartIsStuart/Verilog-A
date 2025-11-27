@@ -1,11 +1,11 @@
 #include "verilog_a_parser.h"
+#include "ast_preprocessor.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <antlr4-runtime/antlr4-runtime.h>
 #include "VerilogLexer.h"
 #include "VerilogParser.h"
-
 using namespace antlr4;
 
 VerilogAParser::VerilogAParser() {
@@ -24,6 +24,7 @@ bool VerilogAParser::parseFile(const std::string& filename) {
     std::string src((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
     return parseString(src, filename);
 }
+
 
 bool VerilogAParser::parseString(const std::string& source, const std::string& filename) {
     clearError();
@@ -45,7 +46,7 @@ bool VerilogAParser::parseString(const std::string& source, const std::string& f
         //build AST
         ASTBuilder builder;
         builder.visit(tree);
-        
+
         //store results
         modules_ = builder.modules;
         disciplines_ = builder.disciplines;
@@ -56,7 +57,25 @@ bool VerilogAParser::parseString(const std::string& source, const std::string& f
             return false;
         }
         
-        // Build symbol tables and Jacobian builders for all modules
+        // // Build symbol tables and Jacobian builders for all modules
+        // for (auto& mod : modules_) {
+        //     if (!buildSymbolTableForModule(mod)) {
+        //         return false;
+        //     }
+        //     if (!buildJacobianForModule(mod)) {
+        //         return false;
+        //     }
+        // }
+        
+        
+        return true;
+        
+    } catch (const std::exception& e) {
+        setError("Parsing error: " + std::string(e.what()));
+        return false;
+    }
+}
+bool VerilogAParser::buildSymbolTableAndJacobianForModule(){
         for (auto& mod : modules_) {
             if (!buildSymbolTableForModule(mod)) {
                 return false;
@@ -66,43 +85,82 @@ bool VerilogAParser::parseString(const std::string& source, const std::string& f
             }
         }
         
-        return true;
         
-    } catch (const std::exception& e) {
-        setError("Parsing error: " + std::string(e.what()));
-        return false;
-    }
+        return true;
 }
-
 bool VerilogAParser::buildSymbolTableForModule(const std::shared_ptr<ModuleDecl>& mod) {
     auto symtab = std::make_shared<SymbolTable>();
-    for (auto& pname : mod->ports){//add ports as independent solver unknowns
+
+    // Add ports as independent solver unknowns
+    for (auto& pname : mod->ports) {
         symtab->addSymbol(pname, true /* independent */, 0.0);
     }
-    for (auto& param : mod->params){//add parameters
+    
+    // Add parameters as constants
+    for (auto& param : mod->params) {
         symtab->addSymbol(param.name, false /* not independent */, param.value);
         int pidx = symtab->find(param.name);
         if (pidx >= 0) symtab->setInitialValue(pidx, param.value, false, true);
     }
-    for (auto& net : mod->electrical_nets){//add electrical nets
+    
+    // Add electrical nets as independent
+    for (auto& net : mod->electrical_nets) {
         if (symtab->find(net) == -1) {
-            symtab->addSymbol(net, true /* independent */, 0.0);
+            symtab->addSymbol(net, true /*independent*/, 0.0);
         }
     }
-    for (auto& kv : user_initials_) {//Apply user-provided initials
+    
+    //Apply user FIXED values
+    for (auto& kv : user_fixed_) {
         const std::string& name = kv.first;
         double val = kv.second;
         int idx = symtab->find(name);
         if (idx == -1) {
-            idx = symtab->addSymbol(name, true /* independent */, 0.0);
+            idx = symtab->addSymbol(name, false /*NOT independent*/, val);
+            symtab->setFixed(idx, true);
+        } else {
+            symtab->setFixed(idx, true);
+            symtab->setValue(idx, val);
         }
-        symtab->setInitialValue(idx, val, true, false);
+    }
+    
+    // Apply user INITIAL GUESSES (nodes remain independent but start at given value)
+    for (auto& kv : user_initials_) {
+        const std::string& name = kv.first;
+        double val = kv.second;
+        int idx = symtab->find(name);
+        if (idx == -1) {
+            idx = symtab->addSymbol(name, true /* independent */, val);
+        } else {
+            // Only set initial guess if node is not fixed
+            if (!symtab->isFixed(idx)) {
+                symtab->setInitialValue(idx, val, true, false);
+                symtab->setValue(idx, val);
+            } else {
+                std::cout << "Warning: Ignoring initial guess for fixed node '" << name << "'" << std::endl;
+            }
+        }
     }
     
     module_data_[mod->name].symtab = symtab;
     return true;
 }
 
+void VerilogAParser::collectAssignmentsFromStatements(const std::vector<AnalogStmtPtr>& stmts, std::vector<std::shared_ptr<AnalogAssign>>& assigns) {
+    for (const auto& stmt : stmts) {
+        if (auto assign = std::dynamic_pointer_cast<AnalogAssign>(stmt)) {
+            assigns.push_back(assign);
+        } else if (auto ifStmt = std::dynamic_pointer_cast<AnalogIf>(stmt)) {
+            //recursively collect from then branch
+            collectAssignmentsFromStatements(ifStmt->thenStmts, assigns);
+            //recursively collect from else branch  
+            collectAssignmentsFromStatements(ifStmt->elseStmts, assigns);
+        } else if (auto blockStmt = std::dynamic_pointer_cast<AnalogBlockStmt>(stmt)) {
+            //recursively collect from nested block
+            collectAssignmentsFromStatements(blockStmt->stmts, assigns);
+        }
+    }
+}
 bool VerilogAParser::buildJacobianForModule(const std::shared_ptr<ModuleDecl>& mod) {
     auto& data = module_data_[mod->name];
     if (!data.symtab) {
@@ -110,21 +168,47 @@ bool VerilogAParser::buildJacobianForModule(const std::shared_ptr<ModuleDecl>& m
         return false;
     }
     
-    std::vector<std::shared_ptr<AnalogAssign>> assigns;//get all analog assignments
-    if (!mod->analog_blocks.empty()) {
-        for (auto& ab : mod->analog_blocks) {
-            for (auto& a : ab->assigns) {
-                if (a) assigns.push_back(a);
+    //build current node values from user initials and symbol table
+    std::vector<double> currentNodeValues(data.symtab->size(), 0.0);//Default to 0
+    for (int i = 0; i < data.symtab->size(); ++i) {
+        const Symbol& sym = (*data.symtab)[i];
+        double value = 0.0;
+        
+        if (sym.isFixed) {
+            value = sym.value;
+        } else if (sym.initialFromUser) {
+            value = sym.initialValue;
+        } else if (sym.hasInitial) {
+            value = sym.initialValue;
+        } else {
+            value = sym.value;
+        }
+        
+        currentNodeValues[i] = value;
+    }
+    //collect all statements from all analog blocks
+    std::vector<AnalogStmtPtr> allStatements;
+    for (auto& analog_block : mod->analog_blocks) {
+        if (analog_block) {
+            for (auto& stmt : analog_block->stmts) {
+                allStatements.push_back(stmt);
             }
         }
-    } else {
-        for (auto& a : mod->analog_assigns) {
-            if (a) assigns.push_back(a);
-        }
     }
-    //create Jacobian builder
-    data.jacobian_builder = std::make_shared<JacobianBuilder>(*data.symtab, assigns);
+    
+    if (allStatements.empty()) {
+        setError("No analog statements found in module: " + mod->name);
+        return false;
+    }
+    
+    //use ASTPreprocessor to get active assignments based on current node values
+    ASTPreprocessor preprocessor(*data.symtab);
+    auto activeAssigns = preprocessor.processAST(allStatements, currentNodeValues);
+
+    //create Jacobian builder with the preprocessed active assignments
+    data.jacobian_builder = std::make_shared<JacobianBuilder>(*data.symtab, activeAssigns);
     data.jacobian_builder->buildIfNeeded();
+    
     //initialize current values
     auto indepIdx = data.symtab->independentIndices();
     data.current_values.resize(indepIdx.size());
@@ -172,9 +256,7 @@ void VerilogAParser::setUserInitials(const std::unordered_map<std::string, doubl
     user_initials_ = initials;
 }
 
-bool VerilogAParser::evaluateModule(const std::string& moduleName, 
-                                   std::vector<double>& residuals,
-                                   std::vector<double>& jacobian_flat) {
+bool VerilogAParser::evaluateModule(const std::string& moduleName, std::vector<double>& residuals, std::vector<double>& jacobian_flat) {
     clearError();
     
     auto it = module_data_.find(moduleName);
@@ -194,8 +276,7 @@ bool VerilogAParser::evaluateModule(const std::string& moduleName,
         double t = 0.0;//add time setting
         double dt = 1e-6;
         
-        data.jacobian_builder->evaluate(data.current_values, t, dt, prevValues, 
-                                       residuals, jacobian_flat);
+        data.jacobian_builder->evaluate(t, dt, prevValues, residuals, jacobian_flat);
         return true;
         
     } catch (const std::exception& e) {
@@ -203,6 +284,8 @@ bool VerilogAParser::evaluateModule(const std::string& moduleName,
         return false;
     }
 }
+
+
 
 std::vector<double> VerilogAParser::getCurrentValues(const std::string& moduleName) const {
     auto it = module_data_.find(moduleName);

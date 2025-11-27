@@ -97,10 +97,24 @@ CMakeFiles/vlgc.dir/src/ast_builder.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/vlgc.dir/src/ast_builder.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/stuart/Documents/VA/Verilog-A/src/ast_builder.cpp -o CMakeFiles/vlgc.dir/src/ast_builder.cpp.s
 
+CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o: CMakeFiles/vlgc.dir/flags.make
+CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o: /home/stuart/Documents/VA/Verilog-A/src/ast_preprocessor.cpp
+CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o: CMakeFiles/vlgc.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/stuart/Documents/VA/Verilog-A/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o -MF CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o.d -o CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o -c /home/stuart/Documents/VA/Verilog-A/src/ast_preprocessor.cpp
+
+CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/stuart/Documents/VA/Verilog-A/src/ast_preprocessor.cpp > CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.i
+
+CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/stuart/Documents/VA/Verilog-A/src/ast_preprocessor.cpp -o CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.s
+
 CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o: CMakeFiles/vlgc.dir/flags.make
 CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o: /home/stuart/Documents/VA/Verilog-A/src/jacobian_builder.cpp
 CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o: CMakeFiles/vlgc.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/stuart/Documents/VA/Verilog-A/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/stuart/Documents/VA/Verilog-A/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o -MF CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o.d -o CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o -c /home/stuart/Documents/VA/Verilog-A/src/jacobian_builder.cpp
 
 CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.i: cmake_force
@@ -114,7 +128,7 @@ CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.s: cmake_force
 CMakeFiles/vlgc.dir/src/main.cpp.o: CMakeFiles/vlgc.dir/flags.make
 CMakeFiles/vlgc.dir/src/main.cpp.o: /home/stuart/Documents/VA/Verilog-A/src/main.cpp
 CMakeFiles/vlgc.dir/src/main.cpp.o: CMakeFiles/vlgc.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/stuart/Documents/VA/Verilog-A/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/vlgc.dir/src/main.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/stuart/Documents/VA/Verilog-A/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/vlgc.dir/src/main.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/vlgc.dir/src/main.cpp.o -MF CMakeFiles/vlgc.dir/src/main.cpp.o.d -o CMakeFiles/vlgc.dir/src/main.cpp.o -c /home/stuart/Documents/VA/Verilog-A/src/main.cpp
 
 CMakeFiles/vlgc.dir/src/main.cpp.i: cmake_force
@@ -128,7 +142,7 @@ CMakeFiles/vlgc.dir/src/main.cpp.s: cmake_force
 CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: CMakeFiles/vlgc.dir/flags.make
 CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilog-A/src/verilog_a_parser.cpp
 CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: CMakeFiles/vlgc.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/stuart/Documents/VA/Verilog-A/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/stuart/Documents/VA/Verilog-A/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o -MF CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o.d -o CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o -c /home/stuart/Documents/VA/Verilog-A/src/verilog_a_parser.cpp
 
 CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.i: cmake_force
@@ -143,6 +157,7 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.s: cmake_force
 vlgc_OBJECTS = \
 "CMakeFiles/vlgc.dir/src/Preprocessor.cpp.o" \
 "CMakeFiles/vlgc.dir/src/ast_builder.cpp.o" \
+"CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o" \
 "CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o" \
 "CMakeFiles/vlgc.dir/src/main.cpp.o" \
 "CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o"
@@ -152,6 +167,7 @@ vlgc_EXTERNAL_OBJECTS =
 
 vlgc: CMakeFiles/vlgc.dir/src/Preprocessor.cpp.o
 vlgc: CMakeFiles/vlgc.dir/src/ast_builder.cpp.o
+vlgc: CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o
 vlgc: CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o
 vlgc: CMakeFiles/vlgc.dir/src/main.cpp.o
 vlgc: CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o
@@ -159,7 +175,7 @@ vlgc: CMakeFiles/vlgc.dir/build.make
 vlgc: libveriloga_parser.a
 vlgc: /home/stuart/vcpkg/installed/x64-linux/lib/libantlr4-runtime.a
 vlgc: CMakeFiles/vlgc.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/stuart/Documents/VA/Verilog-A/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable vlgc"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/stuart/Documents/VA/Verilog-A/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable vlgc"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/vlgc.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

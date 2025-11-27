@@ -34,22 +34,20 @@ public:
     void setUserInitials(const std::unordered_map<std::string, double>& initials);
     
     // Evaluate a specific module
-    bool evaluateModule(const std::string& moduleName, 
-                       std::vector<double>& residuals,
-                       std::vector<double>& jacobian_flat);
-    
+    bool evaluateModule(const std::string& moduleName, std::vector<double>& residuals, std::vector<double>& jacobian_flat);
+
     // Get current variable values for a module
     std::vector<double> getCurrentValues(const std::string& moduleName) const;
     
     // Debug and diagnostic methods
     void printAST(std::ostream& os = std::cout) const;
     void printSymbolTable(const std::string& moduleName, std::ostream& os = std::cout) const;
-    
+    bool buildSymbolTableAndJacobianForModule();
     // Error handling
     bool hasError() const { return !error_message_.empty(); }
     const std::string& getErrorMessage() const { return error_message_; }
     void clearError() { error_message_.clear(); }
-
+    void setUserFixed(const std::unordered_map<std::string, double>& fixed){user_fixed_ = fixed;}
 private:
     // Internal state
     std::vector<std::shared_ptr<ModuleDecl>> modules_;
@@ -66,11 +64,13 @@ private:
     std::unordered_map<std::string, ModuleData> module_data_;
     std::unordered_map<std::string, double> user_initials_;
     std::string error_message_;
+    std::unordered_map<std::string, double> user_fixed_;
     
     // Internal methods
     bool buildSymbolTableForModule(const std::shared_ptr<ModuleDecl>& mod);
     bool buildJacobianForModule(const std::shared_ptr<ModuleDecl>& mod);
     void setError(const std::string& message);
+    void collectAssignmentsFromStatements(const std::vector<AnalogStmtPtr>& stmts, std::vector<std::shared_ptr<AnalogAssign>>& assigns);
 };
 
 #endif

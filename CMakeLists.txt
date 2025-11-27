@@ -41,8 +41,8 @@ file(GLOB_RECURSE PROJECT_SRC "${CMAKE_SOURCE_DIR}/src/*.cpp")
 add_executable(vlgc ${PROJECT_SRC})
 
 # vlgc links the generated parser library (which brings ANTLR includes & lib via PUBLIC)
-target_link_libraries(vlgc PRIVATE veriloga_parser)
-
+find_package(Eigen3 REQUIRED)
+target_link_libraries(vlgc PRIVATE veriloga_parser Eigen3::Eigen)
 # Optional: install target
 install(TARGETS vlgc RUNTIME DESTINATION bin)
 

@@ -9,6 +9,6 @@ module tb_rc;
 
 
   analog begin
-    V(a, b) <+ AMP * sin(2.0 * `M_PI * FREQ * $abstime);
+    V(a, b) <+ AMP * sin(2.0 * `M_PI * FREQ *);
   end
 endmodule

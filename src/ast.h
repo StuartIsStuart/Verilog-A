@@ -7,12 +7,16 @@
 #include <optional>
 #include <iostream>
 
-
-
 struct Expr;
 using ExprPtr = std::shared_ptr<Expr>;
 
-// Base class for all expressions 
+// Base class for all statements in analog blocks
+struct AnalogStmt {
+    virtual ~AnalogStmt() = default;
+    virtual void dump(std::ostream &os, int indent = 0) const = 0;
+};
+using AnalogStmtPtr = std::shared_ptr<AnalogStmt>;
+
 // small parameter descriptor
 struct ParamDecl {
   std::string name;
@@ -29,12 +33,9 @@ struct ParamDecl {
   }
 };
 
-
-
-
 struct Expr {
     virtual ~Expr() = default;
-    // optional: pretty-print helper
+    //pretty-print helper
     virtual void dump(std::ostream &os, int indent = 0) const = 0;
 protected:
     static void pad(std::ostream &os, int indent) {
@@ -42,11 +43,11 @@ protected:
     }
 };
 
-// Number literal (with optional suffix / raw unit text)
+//number literal
 struct NumberExpr : Expr {
     double value;
     std::optional<std::string> raw_unit; // e.g. "k", "meg", "u", or "mV" etc.
-    std::string original_text;           // the original token text (for diagnostics)
+    std::string original_text;           //the original token text (for debugging)
 
     explicit NumberExpr(double v)
         : value(v), raw_unit(std::nullopt), original_text() {}
@@ -60,7 +61,7 @@ struct NumberExpr : Expr {
     }
 };
 
-// Identifier (variable / function / hierarchical id)
+//Identifier (variable / function / hierarchical id)
 struct IdentifierExpr : Expr {
     std::string name;
     explicit IdentifierExpr(std::string n) : name(std::move(n)) {}
@@ -71,7 +72,7 @@ struct IdentifierExpr : Expr {
     }
 };
 
-// String literal
+//String literal
 struct StringExpr : Expr {
     std::string value;
     explicit StringExpr(std::string v) : value(std::move(v)) {}
@@ -82,7 +83,7 @@ struct StringExpr : Expr {
     }
 };
 
-// Function call: name(args...)
+//Function call: name(args...) (includes V(a,b) and I(a,b))
 struct FunctionCallExpr : Expr {
     std::string name;
     std::vector<std::shared_ptr<Expr>> args;
@@ -100,7 +101,7 @@ struct FunctionCallExpr : Expr {
     }
 };
 
-// Binary operator expression
+//Binary operator expression
 struct BinaryExpr : Expr {
     std::string op;
     std::shared_ptr<Expr> left;
@@ -133,40 +134,84 @@ struct UnaryExpr : Expr {
         if (operand) operand->dump(os, indent + 2); else { pad(os, indent + 2); os << "<null-operand>\n"; }
     }
 };
+// Variable assignment (non-analog assignment)
+struct VarAssign : AnalogStmt {
+    std::string varName;
+    ExprPtr expr;
+    
+    void dump(std::ostream &os, int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) os << ' ';
+        os << "VarAssign(" << varName << ")\n";
+        if (expr) expr->dump(os, indent + 2);
+    }
+};
 
-// --- Simple top-level declaration nodes (extendable) ---
+// Conditional statement (if-else)
+struct AnalogIf : AnalogStmt {
+    ExprPtr condition;
+    std::vector<AnalogStmtPtr> thenStmts;
+    std::vector<AnalogStmtPtr> elseStmts;
 
-// analog assignment node for capturing LHS function call and RHS expr
-struct AnalogAssign {
+    void dump(std::ostream &os, int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) os << ' ';
+        os << "AnalogIf\n";
+        if (condition) condition->dump(os, indent + 2);
+        for (const auto &stmt : thenStmts) {
+            if (stmt) stmt->dump(os, indent + 2);
+        }
+        if (!elseStmts.empty()) {
+            for (int i = 0; i < indent; ++i) os << ' ';
+            os << "Else\n";
+            for (const auto &stmt : elseStmts) {
+                if (stmt) stmt->dump(os, indent + 2);
+            }
+        }
+    }
+};
+
+// Sequential block (begin...end)
+struct AnalogBlockStmt : AnalogStmt {
+    std::vector<AnalogStmtPtr> stmts;
+
+    void dump(std::ostream &os, int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) os << ' ';
+        os << "AnalogBlock\n";
+        for (const auto &stmt : stmts) {
+            if (stmt) stmt->dump(os, indent + 2);
+        }
+    }
+};
+
+// Analog assignment
+struct AnalogAssign : AnalogStmt {
     std::shared_ptr<FunctionCallExpr> lhs;
     ExprPtr rhs;
-    void dump(std::ostream &os, int indent = 0) const {
-        for (int i=0;i<indent;++i) os << ' ';
+    void dump(std::ostream &os, int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) os << ' ';
         os << "AnalogAssign\n";
-        if (lhs) lhs->dump(os, indent+2);
-        if (rhs) rhs->dump(os, indent+2);
+        if (lhs) lhs->dump(os, indent + 2);
+        if (rhs) rhs->dump(os, indent + 2);
     }
 };
-// analog block grouping
+
+// AnalogBlock for the entire analog construct
 struct AnalogBlock {
-  std::vector<std::shared_ptr<AnalogAssign>> assigns;
-  void dump(std::ostream &os, int indent = 0) const {
-    for (int i = 0; i < indent; ++i) os << ' ';
-    os << "AnalogBlock\n";
-    for (auto &a : assigns) {
-      if (a) a->dump(os, indent + 2);
-      else { for (int i = 0; i < indent + 2; ++i) os << ' '; os << "<null-assign>\n"; }
+    std::vector<AnalogStmtPtr> stmts;
+    void dump(std::ostream &os, int indent = 0) const {
+        for (int i = 0; i < indent; ++i) os << ' ';
+        os << "AnalogBlock\n";
+        for (auto &stmt : stmts) {
+            if (stmt) stmt->dump(os, indent + 2);
+        }
     }
-  }
 };
+
 struct ModuleDecl {
   std::string name;
   std::vector<std::string> ports;
-  std::vector<ParamDecl> params;                    // <- add this
-  std::vector<std::string> electrical_nets;         // <- add this
-  std::vector<std::shared_ptr<AnalogAssign>> analog_assigns; // <- add this
+  std::vector<ParamDecl> params;
+  std::vector<std::string> electrical_nets;
   std::vector<std::shared_ptr<AnalogBlock>> analog_blocks;
-
 
   void dump(std::ostream &os, int indent = 0) const {
     for (int i = 0; i < indent; ++i) os << ' ';
@@ -182,16 +227,11 @@ struct ModuleDecl {
       for (int i = 0; i < indent + 2; ++i) os << ' ';
       os << "electrical: " << n << "\n";
     }
-    for (const auto &aa : analog_assigns) {
-      if (aa) aa->dump(os, indent + 2);
-    }
     for (const auto &blk : analog_blocks) {
       if (blk) blk->dump(os, indent + 2);
     }
   }
 };
-
-
 
 struct DisciplineDecl {
     std::string name;
@@ -220,7 +260,7 @@ struct NatureDecl {
     }
 };
 
-// ternary (DONT KNOW IF I NEED THIS. BUT MIGHT AS WELL. I THINK V(a,b,c) is a thing)
+// ternary (DONT KNOW IF I NEED THIS. BUT MIGHT AS WELL)
 struct TernaryExpr : Expr {
     ExprPtr cond, ifTrue, ifFalse;
     TernaryExpr(ExprPtr c, ExprPtr t, ExprPtr f) : cond(c), ifTrue(t), ifFalse(f) {}

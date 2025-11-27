@@ -3,6 +3,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/vlgc.dir/src/Preprocessor.cpp.o.d"
   "CMakeFiles/vlgc.dir/src/ast_builder.cpp.o"
   "CMakeFiles/vlgc.dir/src/ast_builder.cpp.o.d"
+  "CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o"
+  "CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o.d"
   "CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o"
   "CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o.d"
   "CMakeFiles/vlgc.dir/src/main.cpp.o"

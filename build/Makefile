@@ -403,6 +403,30 @@ src/ast_builder.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/vlgc.dir/build.make CMakeFiles/vlgc.dir/src/ast_builder.cpp.s
 .PHONY : src/ast_builder.cpp.s
 
+src/ast_preprocessor.o: src/ast_preprocessor.cpp.o
+.PHONY : src/ast_preprocessor.o
+
+# target to build an object file
+src/ast_preprocessor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vlgc.dir/build.make CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.o
+.PHONY : src/ast_preprocessor.cpp.o
+
+src/ast_preprocessor.i: src/ast_preprocessor.cpp.i
+.PHONY : src/ast_preprocessor.i
+
+# target to preprocess a source file
+src/ast_preprocessor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vlgc.dir/build.make CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.i
+.PHONY : src/ast_preprocessor.cpp.i
+
+src/ast_preprocessor.s: src/ast_preprocessor.cpp.s
+.PHONY : src/ast_preprocessor.s
+
+# target to generate assembly for a file
+src/ast_preprocessor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vlgc.dir/build.make CMakeFiles/vlgc.dir/src/ast_preprocessor.cpp.s
+.PHONY : src/ast_preprocessor.cpp.s
+
 src/jacobian_builder.o: src/jacobian_builder.cpp.o
 .PHONY : src/jacobian_builder.o
 
@@ -516,6 +540,9 @@ help:
 	@echo "... src/ast_builder.o"
 	@echo "... src/ast_builder.i"
 	@echo "... src/ast_builder.s"
+	@echo "... src/ast_preprocessor.o"
+	@echo "... src/ast_preprocessor.i"
+	@echo "... src/ast_preprocessor.s"
 	@echo "... src/jacobian_builder.o"
 	@echo "... src/jacobian_builder.i"
 	@echo "... src/jacobian_builder.s"

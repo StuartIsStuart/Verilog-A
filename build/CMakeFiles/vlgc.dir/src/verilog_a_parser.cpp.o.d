@@ -709,4 +709,5 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: \
  /usr/include/cppad/core/undef.hpp \
  /home/stuart/Documents/VA/Verilog-A/src/symbol_table.h \
  /home/stuart/Documents/VA/Verilog-A/src/Preprocessor.h \
+ /home/stuart/Documents/VA/Verilog-A/src/ast_preprocessor.h \
  /home/stuart/Documents/VA/Verilog-A/generated/VerilogLexer.h
