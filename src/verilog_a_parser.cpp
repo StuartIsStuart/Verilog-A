@@ -75,18 +75,17 @@ bool VerilogAParser::parseString(const std::string& source, const std::string& f
         return false;
     }
 }
-bool VerilogAParser::buildSymbolTableAndJacobianForModule(){
-        for (auto& mod : modules_) {
-            if (!buildSymbolTableForModule(mod)) {
-                return false;
-            }
-            if (!buildJacobianForModule(mod)) {
-                return false;
-            }
-        }
+bool VerilogAParser::buildSymbolTableAndJacobianForModule(const std::string& moduleName){
+    auto& mod =getModule(moduleName);
+    if (!buildSymbolTableForModule(mod)) {
+        return false;
+    }
+    if (!buildJacobianForModule(mod)) {
+        return false;
+    }
         
         
-        return true;
+    return true;
 }
 bool VerilogAParser::buildSymbolTableForModule(const std::shared_ptr<ModuleDecl>& mod) {
     auto symtab = std::make_shared<SymbolTable>();
@@ -255,8 +254,16 @@ std::vector<std::string> VerilogAParser::getModuleNames() const {//get name of a
 void VerilogAParser::setUserInitials(const std::unordered_map<std::string, double>& initials) {
     user_initials_ = initials;
 }
-
-bool VerilogAParser::evaluateModule(const std::string& moduleName, std::vector<double>& residuals, std::vector<double>& jacobian_flat) {
+const std::shared_ptr<ModuleDecl>& VerilogAParser::getModule(const std::string& moduleName) {
+    for (const auto& mod : modules_) {
+        if(mod->name == moduleName){return mod;}
+    }
+    setError("No module found: " + moduleName);
+}
+std::vector<std::string> VerilogAParser::getPorts(const std::string& moduleName) {
+    return(getModule(moduleName) -> ports);
+}
+bool VerilogAParser::evaluateModule(std::vector<double> x_current, const std::string& moduleName, std::vector<double>& residuals, std::vector<double>& jacobian_flat) {
     clearError();
     
     auto it = module_data_.find(moduleName);
@@ -276,7 +283,7 @@ bool VerilogAParser::evaluateModule(const std::string& moduleName, std::vector<d
         double t = 0.0;//add time setting
         double dt = 1e-6;
         
-        data.jacobian_builder->evaluate(t, dt, prevValues, residuals, jacobian_flat);
+        data.jacobian_builder->evaluate(x_current, t, dt, prevValues, residuals, jacobian_flat);
         return true;
         
     } catch (const std::exception& e) {
@@ -321,6 +328,20 @@ void VerilogAParser::printSymbolTable(const std::string& moduleName, std::ostrea
                << (s.initialFromUser ? " (user)" : (s.hasInitial ? " (source)" : "")) << "\n";
         }
     }
+}
+
+std::vector<double> VerilogAParser::make_X_vector(const std::string& moduleName) const {
+    auto symtab = getSymbolTable(moduleName);
+    std::vector<double> x_current;
+    if (symtab) {
+        auto indep = symtab->independentIndices();
+        for (size_t i = 0; i < indep.size(); ++i) {
+            int idx = indep[i];
+            const Symbol& s = (*symtab)[idx];
+            x_current.push_back(s.value);
+        }
+    }
+    return x_current;
 }
 
 void VerilogAParser::setError(const std::string& message) {

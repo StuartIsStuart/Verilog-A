@@ -16,7 +16,7 @@ public:
 
     void buildIfNeeded();
 
-    void evaluate(double t, double dt, const std::vector<double> &prevValues, std::vector<double> &out_y, std::vector<double> &out_J_flat);
+    void evaluate(std::vector<double> x_current,double t, double dt, const std::vector<double> &prevValues, std::vector<double> &out_y, std::vector<double> &out_J_flat);
     
     int numUnknowns() const { return n; }
     int numResiduals() const { return m; }

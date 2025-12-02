@@ -26,7 +26,7 @@ public:
     // Symbol table and Jacobian builder for a specific module
     std::shared_ptr<SymbolTable> getSymbolTable(const std::string& moduleName) const;
     std::shared_ptr<JacobianBuilder> getJacobianBuilder(const std::string& moduleName) const;
-    
+    std::vector<double> make_X_vector(const std::string& moduleName) const;
     // Get all available module names
     std::vector<std::string> getModuleNames() const;
     
@@ -34,15 +34,15 @@ public:
     void setUserInitials(const std::unordered_map<std::string, double>& initials);
     
     // Evaluate a specific module
-    bool evaluateModule(const std::string& moduleName, std::vector<double>& residuals, std::vector<double>& jacobian_flat);
+    bool evaluateModule(std::vector<double> x_current, const std::string& moduleName, std::vector<double>& residuals, std::vector<double>& jacobian_flat);
 
     // Get current variable values for a module
     std::vector<double> getCurrentValues(const std::string& moduleName) const;
-    
+    std::vector<std::string> getPorts(const std::string& moduleName);
     // Debug and diagnostic methods
     void printAST(std::ostream& os = std::cout) const;
     void printSymbolTable(const std::string& moduleName, std::ostream& os = std::cout) const;
-    bool buildSymbolTableAndJacobianForModule();
+    bool buildSymbolTableAndJacobianForModule(const std::string& moduleName);
     // Error handling
     bool hasError() const { return !error_message_.empty(); }
     const std::string& getErrorMessage() const { return error_message_; }
@@ -53,7 +53,7 @@ private:
     std::vector<std::shared_ptr<ModuleDecl>> modules_;
     std::vector<std::shared_ptr<DisciplineDecl>> disciplines_;
     std::vector<std::shared_ptr<NatureDecl>> natures_;
-    
+    const std::shared_ptr<ModuleDecl>& getModule(const std::string& moduleName);
     // Per-module data
     struct ModuleData {
         std::shared_ptr<SymbolTable> symtab;

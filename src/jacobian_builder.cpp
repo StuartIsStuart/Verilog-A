@@ -861,13 +861,7 @@ double JacobianBuilder::computeResidualNorm(const std::vector<double>& residuals
 }
 
 //evaluate numeric residuals & jacobian
-void JacobianBuilder::evaluate(double t, double dt, const std::vector<double> &prevValues, std::vector<double> &out_y, std::vector<double> &out_J_flat){
-    std::vector<double> x_current(n);
-    for (int i = 0; i < n; ++i) {
-        int sym_idx = indIndices[i];
-        x_current[i] = symtab[sym_idx].value;
-        //std::cout << "Initial guess: " << symtab[sym_idx].name << " = " << x_current[i] << std::endl;
-    }
+void JacobianBuilder::evaluate(std::vector<double> x_current, double t, double dt, const std::vector<double> &prevValues, std::vector<double> &out_y, std::vector<double> &out_J_flat){
     if ((int)x_current.size() != n){
         throw std::runtime_error("JacobianBuilder::evaluate: x_current size mismatch");
     }

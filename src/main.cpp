@@ -3,13 +3,59 @@
 // In your main.cpp or test file
 using AD = CppAD::AD<double>;
 
+int toy(){
+    std::string fileName = "tests/test1.va"; //verilog-a file
+    VerilogAParser parser; //Create the parser object
+    if (!parser.parseFile(fileName)) { //Parse the verilog file
+        std::cerr << "Failed to parse file: " << parser.getErrorMessage() << std::endl;
+        return 1;
+    }
+    for (const auto& moduleName : parser.getModuleNames()) {//Process each module (typically there is one module per file but this allows for multiple)
+        std::unordered_map<std::string, double> userInitials;//Create userInitials and userFixed to populate jacobian
+        std::unordered_map<std::string, double> userFixed;
+        std::vector<std::string> ports = parser.getPorts(moduleName);//Get the ports of the module
+        for(auto& port: ports) {//In this example i am setting all ports as "unknowns" with an initial value of 0
+            userInitials[port] = 0;
+        }
+        parser.setUserInitials(userInitials);//Set initial values for ports, done here
+        parser.setUserFixed(userFixed);//    as this allows for conditionals to be used
+        parser.buildSymbolTableAndJacobianForModule(moduleName);// build the jacobian and symbol table
+        std::vector<double> residuals;
+        std::vector<double> jacobian_flat;
+        std::vector<double> x_current = parser.make_X_vector(moduleName);//Creates the current x vector to be changed
+        if (!parser.evaluateModule(x_current, moduleName, residuals, jacobian_flat)) {//evaluate modual
+            std::cerr << "Failed to evaluate module " << moduleName << ": " << parser.getErrorMessage() << std::endl;
+        }
 
+
+
+
+        // Prints to show
+        for(auto& port : ports){
+            std::cout << "Port: " << port << std::endl;
+        }
+        for(auto& x : x_current){
+            std::cout << "x_current: " << x << std::endl;
+        }
+        std::cout << "===== Jacobian =====";
+        for (size_t i = 0; i < jacobian_flat.size(); ++i) {//print jacobian 
+            if(i % x_current.size() == 0){std::cout << "\n";}
+            std::cout <<jacobian_flat[i] << "   ";
+        }
+        std::cout << "\n";
+        std::cout << "===== Residuals =====" << std::endl;
+        for(auto& residual : residuals){
+            std::cout << "residual: " << residual << std::endl;
+        }
+    }
+    return 1;
+}
 int main(int argc, char** argv) {
     if (argc < 2) {
         std::cerr << "Usage: vlgc <test.v> [--init=name=val,name2=val2,...] [--fixed=name=val,name2=val2,...]\n";
         return 1;
     }
-    
+    return toy();
     //parse command line arguments
     std::unordered_map<std::string, double> userInitials;//Create userInitials and userFixed to populate jacobian
     std::unordered_map<std::string, double> userFixed;
@@ -79,39 +125,45 @@ int main(int argc, char** argv) {
     }
     parser.printAST();//print the ast
     for (const auto& moduleName : parser.getModuleNames()) {//Process each module
-        userInitials["I(d,s)"]=1.2e-05;
-        parser.setUserInitials(userInitials);
-        parser.setUserFixed(userFixed);
-        std::cout << "Processing module: " << moduleName << std::endl;
-        parser.buildSymbolTableAndJacobianForModule();
+        std::vector<std::string> ports = parser.getPorts(moduleName);//Get the ports of the module
+        for(auto& port : ports){
+            std::cout << "Port: " << port << std::endl;
+        }
+        parser.setUserInitials(userInitials);//Set initial values for ports, done here
+        parser.setUserFixed(userFixed);//    as this allows for conditionals to be used
+        parser.buildSymbolTableAndJacobianForModule(moduleName);// build the jacobian and symbol table
         std::vector<double> residuals;
         std::vector<double> jacobian_flat;
-        if (parser.evaluateModule(moduleName, residuals, jacobian_flat)) {//evaluate modual
-            auto jacobian_builder = parser.getJacobianBuilder(moduleName);//run builder
-            if (jacobian_builder) {
-                std::cout << "Module '" << moduleName << "' produced m=" << jacobian_builder->numResiduals()
-                          << " residuals and n=" << jacobian_builder->numUnknowns() << " unknowns\n";
-                std::cout << "y.size()=" << residuals.size() << " Jflat.size()=" << jacobian_flat.size() << "\n";
+        std::vector<double> x_current = parser.make_X_vector(moduleName);
+        for(auto& i : x_current){
+            std::cout << i << std::endl;
+        }
+        if (!parser.evaluateModule(x_current, moduleName, residuals, jacobian_flat)) {//evaluate modual
+            std::cerr << "Failed to evaluate module " << moduleName << ": " << parser.getErrorMessage() << std::endl;
+        }
+        auto jacobian_builder = parser.getJacobianBuilder(moduleName);//run builder
+
+
+        if (jacobian_builder) {
+             std::cout << "Module '" << moduleName << "' produced m=" << jacobian_builder->numResiduals()
+                        << " residuals and n=" << jacobian_builder->numUnknowns() << " unknowns\n";
+            std::cout << "y.size()=" << residuals.size() << " Jflat.size()=" << jacobian_flat.size() << "\n";
                 
-                for (size_t i = 0; i < residuals.size(); ++i) {//print resudals
-                    std::cout << "y[" << i << "] = " << residuals[i] << "\n";
-                }
-                
-                size_t maxPrint = std::min<size_t>(jacobian_flat.size(), 20);
-                for (size_t i = 0; i < jacobian_flat.size(); ++i) {//print jacobian flat
-                    std::cout << "Jflat[" << i << "]=" << jacobian_flat[i] << " ";
-                }
-                std::cout << "\n\n";
-                for (size_t i = 0; i < jacobian_flat.size(); ++i) {//print jacobian 
-                    if(i % jacobian_builder->numResiduals() ==0){std::cout << "\n";}
-                    std::cout <<jacobian_flat[i] << "   ";
-                }
-                std::cout << "\n\n";
-                parser.printSymbolTable(moduleName, std::cout);//print symbol table
+            for (size_t i = 0; i < residuals.size(); ++i) {//print resudals
+                std::cout << "y[" << i << "] = " << residuals[i] << "\n";
             }
-        } else {
-            std::cerr << "Failed to evaluate module " << moduleName << ": " 
-                      << parser.getErrorMessage() << std::endl;
+                
+            size_t maxPrint = std::min<size_t>(jacobian_flat.size(), 20);
+            for (size_t i = 0; i < jacobian_flat.size(); ++i) {//print jacobian flat
+                std::cout << "Jflat[" << i << "]=" << jacobian_flat[i] << " ";
+            }
+            std::cout << "\n\n";
+            for (size_t i = 0; i < jacobian_flat.size(); ++i) {//print jacobian 
+                if(i % jacobian_builder->numResiduals() ==0){std::cout << "\n";}
+                std::cout <<jacobian_flat[i] << "   ";
+            }
+            std::cout << "\n\n";
+            parser.printSymbolTable(moduleName, std::cout);//print symbol table
         }
     }
     
