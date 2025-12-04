@@ -1,6 +1,5 @@
 #include <iostream>
 #include "verilog_a_parser.h"
-// In your main.cpp or test file
 using AD = CppAD::AD<double>;
 
 int toy(){
@@ -26,10 +25,8 @@ int toy(){
         if (!parser.evaluateModule(x_current, moduleName, residuals, jacobian_flat)) {//evaluate modual
             std::cerr << "Failed to evaluate module " << moduleName << ": " << parser.getErrorMessage() << std::endl;
         }
-
-
-
-
+        std::vector<std::string> unknowns = parser.get_unknowns(moduleName);//get unkown names
+        
         // Prints to show
         for(auto& port : ports){
             std::cout << "Port: " << port << std::endl;
@@ -37,9 +34,15 @@ int toy(){
         for(auto& x : x_current){
             std::cout << "x_current: " << x << std::endl;
         }
-        std::cout << "===== Jacobian =====";
+        for(auto& unknown : unknowns){
+            std::cout << "unknown: " << unknown << std::endl;
+        }
+        std::cout << "===== Jacobian ===== \n   ";
+        for(auto& unknown : unknowns){
+            std::cout << unknown << "   ";
+        }
         for (size_t i = 0; i < jacobian_flat.size(); ++i) {//print jacobian 
-            if(i % x_current.size() == 0){std::cout << "\n";}
+            if(i % x_current.size() == 0){std::cout << "\n" << unknowns[floor(i/x_current.size())] <<" ";}
             std::cout <<jacobian_flat[i] << "   ";
         }
         std::cout << "\n";

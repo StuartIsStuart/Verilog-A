@@ -1,6 +1,5 @@
 #include "jacobian_builder.h"
 #include <iostream>
-#include <Eigen/Dense>
 #include <sstream>
 #include <algorithm>
 #include <cassert>
@@ -400,32 +399,8 @@ bool JacobianBuilder::processResistorLikePattern(const ExprPtr& L, const ExprPtr
     return true;
 }
 
-// bool JacobianBuilder::processGenericBranchPattern(const ExprPtr& L, const ExprPtr& R, const std::string& nameA, const std::string& nameB, ResidualConstructionState& state){
-//     //Generic branch handling: V(a,b) = complex_expression
-//     ExprPtr rhs_transformed = replaceVcallsWithDiff(R, nameA, nameB);
-    
-//     //Create branch symbol I(a,b)
-//     std::ostringstream bss;
-//     bss << "I(" << nameA << "," << nameB << ")";
-//     std::string branchSym = bss.str();
-//     ExprPtr branchId = std::make_shared<IdentifierExpr>(branchSym);
-    
-//     //Stamp KCL: +I into node A, -I into node B
-//     addToNodeResidual(nameA, branchId, state);
-//     addToNodeResidual(nameB, negateExpr(branchId), state);
-    
-//     //Build branch residual = (Va - Vb) - rhs_transformed
-//     auto va = std::make_shared<IdentifierExpr>(nameA);
-//     auto vb = std::make_shared<IdentifierExpr>(nameB);
-//     auto diff = std::make_shared<BinaryExpr>(std::string("-"), va, vb);
-//     ExprPtr branchRes = std::make_shared<BinaryExpr>(std::string("-"), diff, rhs_transformed);
-    
-//     state.pendingBranchResiduals[branchSym] = branchRes;
-//     state.neededBranches.insert(branchSym);
-    
-//     //std::cerr << "created generic branch pattern for " << branchSym << "\n";
-//     return true;
-// }
+
+
 bool JacobianBuilder::processCurrentSourcePattern(const ExprPtr& L, const ExprPtr& R, ResidualConstructionState& state){
     std::string nameA, nameB;
     std::string branchSym;

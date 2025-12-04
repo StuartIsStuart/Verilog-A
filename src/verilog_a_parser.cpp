@@ -343,7 +343,19 @@ std::vector<double> VerilogAParser::make_X_vector(const std::string& moduleName)
     }
     return x_current;
 }
-
+std::vector<std::string> VerilogAParser::get_unknowns(const std::string& moduleName) const {
+    auto symtab = getSymbolTable(moduleName);
+    std::vector<std::string> x_current;
+    if (symtab) {
+        auto indep = symtab->independentIndices();
+        for (size_t i = 0; i < indep.size(); ++i) {
+            int idx = indep[i];
+            const Symbol& s = (*symtab)[idx];
+            x_current.push_back(s.name);
+        }
+    }
+    return x_current;
+}
 void VerilogAParser::setError(const std::string& message) {
     error_message_ = message;
     std::cerr << "VerilogAParser Error: " << message << std::endl;

@@ -27,6 +27,7 @@ public:
     std::shared_ptr<SymbolTable> getSymbolTable(const std::string& moduleName) const;
     std::shared_ptr<JacobianBuilder> getJacobianBuilder(const std::string& moduleName) const;
     std::vector<double> make_X_vector(const std::string& moduleName) const;
+    std::vector<std::string> get_unknowns(const std::string& moduleName) const;
     // Get all available module names
     std::vector<std::string> getModuleNames() const;
     
