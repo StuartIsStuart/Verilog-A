@@ -1,10 +1,12 @@
 #include "jacobian_builder.h"
 #include <iostream>
 #include <sstream>
+#include <Eigen/Dense>
 #include <algorithm>
 #include <cassert>
 #include <unordered_set>
 #include <functional>
+using namespace Eigen;
 void JacobianBuilder::substituteUserValues() {
     std::unordered_map<std::string, double> fixedValues;
     for (int i = 0; i < symtab.size(); ++i) {
@@ -835,6 +837,119 @@ double JacobianBuilder::computeResidualNorm(const std::vector<double>& residuals
     return std::sqrt(sum);
 }
 
+bool JacobianBuilder::schurComplementReduction(const std::vector<double>& J_full, const std::vector<double>& R_full, const std::vector<std::string>& var_names, std::vector<std::string>& unknowns, std::vector<double>& J_reduced, std::vector<double>& R_reduced, double threshold){
+    
+    std::vector<int> voltage_indices;
+    std::vector<int> current_indices;
+    unknowns = var_names;
+    for (int i = 0; i < n; i++) {//get branch currents
+        std::string var_name = var_names[i];
+        if (((var_name[0] == 'I') ||(var_name[0] == 'i')) && ((var_name[1] == '('))) {
+            current_indices.push_back(i);
+        } else {
+            voltage_indices.push_back(i);
+        }
+    }
+    
+    int nV = voltage_indices.size();
+    int nI = current_indices.size();
+    
+    if (nI == 0) {//if no currents return (should never happen)
+        J_reduced = J_full;
+        R_reduced = R_full;
+        return true;
+    }
+    
+    MatrixXd J_eigen(n, n);
+    VectorXd R_eigen(n);
+    
+    for (int i = 0; i < n; i++) {//populate eigen matrix and vector
+        R_eigen(i) = R_full[i];
+        for (int j = 0; j < n; j++) {
+            J_eigen(i, j) = J_full[i * n + j];
+        }
+    }
+    
+    std::vector<int> eliminable_currents;
+    std::vector<int> non_eliminable_currents;
+    
+    for (int i = 0; i < nI; i++) {
+        int idx = current_indices[i];
+        if (abs(J_eigen(idx, idx)) > threshold) {//if the diaganol for the current is 0 then it CANNOT be eliminated
+            eliminable_currents.push_back(idx);
+        } else {
+            non_eliminable_currents.push_back(idx);
+        }
+    }
+    
+    int nE = eliminable_currents.size();
+    int nK = non_eliminable_currents.size();
+    
+    
+    if (nE == 0) {//if nothing can be eliminated
+        J_reduced = J_full;
+        R_reduced = R_full;
+        return true;
+    }
+    
+    std::vector<int> all_indices;
+    all_indices.reserve(nV + nK + nE);
+    all_indices.insert(all_indices.end(), voltage_indices.begin(), voltage_indices.end());
+    all_indices.insert(all_indices.end(), non_eliminable_currents.begin(), non_eliminable_currents.end());
+    all_indices.insert(all_indices.end(), eliminable_currents.begin(), eliminable_currents.end());
+    
+    MatrixXd J_ordered(n, n);
+    VectorXd R_ordered(n);
+    
+    for (int i = 0; i < n; i++) {//make ordered jacobian
+        int row_idx = all_indices[i];
+        R_ordered(i) = R_eigen(row_idx);
+        for (int j = 0; j < n; j++) {
+            int col_idx = all_indices[j];
+            J_ordered(i, j) = J_eigen(row_idx, col_idx);
+        }
+    }
+
+    int p = nV + nK;
+    int q = nE;
+    
+    
+    MatrixXd A = J_ordered.topLeftCorner(p, p);//make segments
+    MatrixXd B = J_ordered.topRightCorner(p, q);
+    MatrixXd C = J_ordered.bottomLeftCorner(q, p);
+    MatrixXd D = J_ordered.bottomRightCorner(q, q);
+    
+    VectorXd R_keep = R_ordered.head(p);
+    VectorXd R_elim = R_ordered.tail(q);
+    
+    FullPivLU<MatrixXd> lu(D);
+    if (!lu.isInvertible()) {
+        std::cout << "Warning: Current block is singular. Cannot eliminate." << std::endl;
+        
+        J_reduced = J_full;
+        R_reduced = R_full;
+        return false;
+    }
+    
+    MatrixXd D_inv = D.inverse();
+
+    MatrixXd S = A - B * D_inv * C; //schur complement
+    VectorXd R_red = R_keep - B * D_inv * R_elim;
+    
+    unknowns = {};
+    
+    for (int i = 0; i < p; i++) {
+        int idx = all_indices[i];
+        unknowns.push_back(var_names[idx]);
+        R_reduced.push_back(R_red(i));
+        for (int j = 0; j < p; j++) {
+            J_reduced.push_back(S(i, j));
+        }
+    }
+    
+    return true;
+}
+
 //evaluate numeric residuals & jacobian
 void JacobianBuilder::evaluate(std::vector<double> x_current, double t, double dt, const std::vector<double> &prevValues, std::vector<double> &out_y, std::vector<double> &out_J_flat){
     if ((int)x_current.size() != n){
@@ -842,12 +957,18 @@ void JacobianBuilder::evaluate(std::vector<double> x_current, double t, double d
     }
 
     buildIfNeeded();
-
     //forward evaluation (0th order)
     out_y = f.Forward(0, x_current);
     //dense jacobian. Maybe switch to sparse?
     out_J_flat = f.Jacobian(x_current);
 }
+void JacobianBuilder::evaluateWithoutBranchCurrents(const std::vector<std::string>& var_names, std::vector<std::string>& unknowns, std::vector<double> x_current, double t, double dt, const std::vector<double> &prevValues, std::vector<double> &out_y, std::vector<double> &out_J_flat){
+    std::vector<double> out_y_full;
+    std::vector<double> out_J_flat_full;
+    evaluate(x_current, t, dt, prevValues,out_y_full , out_J_flat_full);
+    schurComplementReduction(out_J_flat_full,out_y_full, var_names, unknowns, out_J_flat, out_y, 1e-12);
+}
+
 
 template<typename T>
 T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const std::vector<int> &symToVar, const std::vector<double> &prevValues, double dt){

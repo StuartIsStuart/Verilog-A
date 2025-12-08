@@ -13,36 +13,38 @@ int toy(){
         std::unordered_map<std::string, double> userInitials;//Create userInitials and userFixed to populate jacobian
         std::unordered_map<std::string, double> userFixed;
         std::vector<std::string> ports = parser.getPorts(moduleName);//Get the ports of the module
-        for(auto& port: ports) {//In this example i am setting all ports as "unknowns" with an initial value of 0
-            userInitials[port] = 0;
-        }
+        // for(auto& port: ports) {//In this example i am setting all ports as "unknowns" with an initial value of 0
+        //     userInitials[port] = 0;
+        // }
+        // userInitials["d"] = 0.4;
+        // userInitials["g"] = 1.2;
+        // userInitials["s"] = 0;
+        // userInitials["b"] = 0;
+        userInitials["a"] = 500;
+        userInitials["b"] = 0;
+        userInitials["I(a,b)"] = 0.10016742;
         parser.setUserInitials(userInitials);//Set initial values for ports, done here
         parser.setUserFixed(userFixed);//    as this allows for conditionals to be used
         parser.buildSymbolTableAndJacobianForModule(moduleName);// build the jacobian and symbol table
         std::vector<double> residuals;
         std::vector<double> jacobian_flat;
-        std::vector<double> x_current = parser.make_X_vector(moduleName);//Creates the current x vector to be changed
-        if (!parser.evaluateModule(x_current, moduleName, residuals, jacobian_flat)) {//evaluate modual
+        std::vector<std::string> unknowns;
+        if (!parser.evaluateModuleWithoutBranchCurrents(moduleName, residuals, jacobian_flat, unknowns)) {//evaluate modual
             std::cerr << "Failed to evaluate module " << moduleName << ": " << parser.getErrorMessage() << std::endl;
         }
-        std::vector<std::string> unknowns = parser.get_unknowns(moduleName);//get unkown names
-        
         // Prints to show
         for(auto& port : ports){
             std::cout << "Port: " << port << std::endl;
         }
-        for(auto& x : x_current){
-            std::cout << "x_current: " << x << std::endl;
-        }
         for(auto& unknown : unknowns){
-            std::cout << "unknown: " << unknown << std::endl;
+            std::cout << "Unknowns: " << unknown << std::endl;
         }
         std::cout << "===== Jacobian ===== \n   ";
-        for(auto& unknown : unknowns){
-            std::cout << unknown << "   ";
+        for(auto& port : ports){
+            std::cout << port << "   ";
         }
         for (size_t i = 0; i < jacobian_flat.size(); ++i) {//print jacobian 
-            if(i % x_current.size() == 0){std::cout << "\n" << unknowns[floor(i/x_current.size())] <<" ";}
+            if(i % unknowns.size() == 0){std::cout << "\n" << unknowns[floor(i/unknowns.size())] <<" ";}
             std::cout <<jacobian_flat[i] << "   ";
         }
         std::cout << "\n";
@@ -50,7 +52,9 @@ int toy(){
         for(auto& residual : residuals){
             std::cout << "residual: " << residual << std::endl;
         }
+
     }
+    
     return 1;
 }
 int main(int argc, char** argv) {
@@ -132,6 +136,10 @@ int main(int argc, char** argv) {
         for(auto& port : ports){
             std::cout << "Port: " << port << std::endl;
         }
+        //userInitials["I(a,src)"]= 0.099;
+        //userInitials["I(src,b)"]= 0.099;
+        //userInitials["I(a,b)"]= -1.2e-05;
+
         parser.setUserInitials(userInitials);//Set initial values for ports, done here
         parser.setUserFixed(userFixed);//    as this allows for conditionals to be used
         parser.buildSymbolTableAndJacobianForModule(moduleName);// build the jacobian and symbol table

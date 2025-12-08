@@ -1,13 +1,17 @@
-module conditional_with_vars(a, b);
-    electrical a, b;
-    parameter R = 1000;
-    parameter mode = 1;
-    analog begin
-        if (V(a,b) > 10) begin
-            current_val = R * I(a,b);
-        end else begin
-            current_val = I(a,b) * (R*5); 
-        end
-      V(a,b) <+ current_val;
-    end
+module test_circuit_with_external_source(a, b);
+  inout a, b;
+  electrical a, b, src;
+  
+  parameter real R = 5000;
+  parameter real V2 = 5;
+  parameter real Vext = 500;  // External source
+  
+  analog begin
+    // External 500V source
+    V(a,b) <+ Vext;
+    
+    // Your circuit
+    V(src,b) <+ V2;
+    I(a,src) <+ V(a,src)/R;
+  end
 endmodule

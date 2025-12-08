@@ -343,6 +343,37 @@ std::vector<double> VerilogAParser::make_X_vector(const std::string& moduleName)
     }
     return x_current;
 }
+
+bool VerilogAParser::evaluateModuleWithoutBranchCurrents(const std::string& moduleName, std::vector<double>& residuals, std::vector<double>& jacobian_flat, std::vector<std::string>& unknowns_out) {
+    clearError();
+    
+    auto it = module_data_.find(moduleName);
+    if (it == module_data_.end()) {
+        setError("No module1: " + moduleName);
+        return false;
+    }
+    
+    auto& data = it->second;
+    if (!data.jacobian_builder) {
+        setError("No module2: " + moduleName);
+        return false;
+    }
+    
+    try {
+        std::vector<double> prevValues(data.symtab->size(), 0.0);
+        double t = 0.0;//add time setting
+        double dt = 1e-6;
+        std::vector<double> x_current = make_X_vector(moduleName);
+        std::vector<std::string> unknowns = get_unknowns(moduleName);
+        data.jacobian_builder->evaluateWithoutBranchCurrents(unknowns, unknowns_out, x_current, t, dt, prevValues, residuals, jacobian_flat);
+        return true;
+        
+    } catch (const std::exception& e) {
+        setError("Evaluation error: " + std::string(e.what()));
+        return false;
+    }
+}
+
 std::vector<std::string> VerilogAParser::get_unknowns(const std::string& moduleName) const {
     auto symtab = getSymbolTable(moduleName);
     std::vector<std::string> x_current;

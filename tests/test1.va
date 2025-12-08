@@ -5,6 +5,6 @@ module R(a, b);
   electrical a, b;
   parameter real R = 5000;
   analog begin
-    V(a,b) <+ R * (I(a,b));
+    I(a,b) <+ (V(a,b))/R;
   end
 endmodule

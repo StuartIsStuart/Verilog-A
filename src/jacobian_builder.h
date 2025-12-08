@@ -29,7 +29,8 @@ public:
       else std::cerr << "<null>\n";
     }
   }
-
+bool schurComplementReduction(const std::vector<double>& J_full, const std::vector<double>& R_full, const std::vector<std::string>& var_names, std::vector<std::string>& unknowns, std::vector<double>& J_reduced, std::vector<double>& R_reduced, double threshold = 1e-12);
+void evaluateWithoutBranchCurrents(const std::vector<std::string>& var_names, std::vector<std::string>& unknowns, std::vector<double> x_current, double t, double dt, const std::vector<double> &prevValues, std::vector<double> &out_y, std::vector<double> &out_J_flat);
 private:
     SymbolTable &symtab;
     std::vector<std::shared_ptr<AnalogAssign>> assigns;
@@ -45,7 +46,6 @@ private:
 
     int n = 0; //indep vars
     int m = 0; //residuals
-   // AnalogBlockInterpreter interpreter_;
     void constructResidualExprs();
     void constructResidualsFromInterpretation();
     bool containsFreeVariables(const ExprPtr& expr, const std::vector<int>& free_indeps) const;
@@ -53,10 +53,8 @@ private:
     bool evaluateCondition(const ExprPtr& condition, const SymbolTable& symtab);
     ExprPtr substituteValuesInExpr(const ExprPtr& expr, const std::unordered_map<std::string, double>& values);
     double computeResidualNorm(const std::vector<double>& residuals);
-    // build the tape (uses zero prev-values & zero initial x for recording; later evaluate numerically)
     void buildTape();
 
-    // allow evaluator to call into these private members (declared in cpp)
     template<typename T>
     T evalExpr(const ExprPtr &e, const std::vector<T> &ax, const std::vector<int> &symToVar, const std::vector<double> &prevValues, double dt);
 private:
@@ -84,7 +82,6 @@ private:
         void collectBranchIdentifiers(const ExprPtr& e, std::unordered_set<std::string>& found) const;
     };
 
-    //helpers
     void normaliseAssignments(ResidualConstructionState& state);
     bool processAssignment(size_t index, ResidualConstructionState& state);
     bool processVNodePattern(const ExprPtr& L, const ExprPtr& R, ResidualConstructionState& state);
@@ -96,7 +93,6 @@ private:
     void collectNeededBranches(ResidualConstructionState& state);
     void buildFinalResidualVector(ResidualConstructionState& state);
     
-    //utility
     ExprPtr makeNumber(double value) const;
     ExprPtr negateExpr(const ExprPtr& expr) const;
     void addToNodeResidual(const std::string& nodeName, const ExprPtr& term, ResidualConstructionState& state);

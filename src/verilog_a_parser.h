@@ -13,7 +13,8 @@ class VerilogAParser {
 public:
     // Constructor
     VerilogAParser();
-    
+    bool evaluateModuleWithoutBranchCurrents(const std::string& moduleName, std::vector<double>& residuals, std::vector<double>& jacobian_flat, std::vector<std::string>& unknowns_out);
+
     // Main parsing interface
     bool parseFile(const std::string& filename);
     bool parseString(const std::string& source, const std::string& filename = "input.v");

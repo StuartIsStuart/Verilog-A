@@ -1637,7 +1637,212 @@ CMakeFiles/vlgc.dir/src/jacobian_builder.cpp.o: /home/stuart/Documents/VA/Verilo
   /usr/include/c++/11/bits/unordered_set.h \
   /home/stuart/Documents/VA/Verilog-A/src/symbol_table.h \
   /usr/include/c++/11/optional \
-  /home/stuart/Documents/VA/Verilog-A/src/ast.h
+  /home/stuart/Documents/VA/Verilog-A/src/ast.h \
+  /usr/include/eigen3/Eigen/Dense \
+  /usr/include/eigen3/Eigen/Core \
+  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
+  /usr/include/eigen3/Eigen/src/Core/util/Macros.h \
+  /usr/include/eigen3/Eigen/src/Core/util/ConfigureVectorization.h \
+  /usr/lib/gcc/x86_64-linux-gnu/11/include/mmintrin.h \
+  /usr/lib/gcc/x86_64-linux-gnu/11/include/emmintrin.h \
+  /usr/lib/gcc/x86_64-linux-gnu/11/include/xmmintrin.h \
+  /usr/lib/gcc/x86_64-linux-gnu/11/include/mm_malloc.h \
+  /usr/include/eigen3/Eigen/src/Core/util/MKL_support.h \
+  /usr/include/c++/11/climits \
+  /usr/lib/gcc/x86_64-linux-gnu/11/include/limits.h \
+  /usr/lib/gcc/x86_64-linux-gnu/11/include/syslimits.h \
+  /usr/include/limits.h \
+  /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/local_lim.h \
+  /usr/include/linux/limits.h \
+  /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/uio_lim.h \
+  /usr/include/eigen3/Eigen/src/Core/util/Constants.h \
+  /usr/include/eigen3/Eigen/src/Core/util/Meta.h \
+  /usr/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h \
+  /usr/include/eigen3/Eigen/src/Core/util/StaticAssert.h \
+  /usr/include/eigen3/Eigen/src/Core/util/XprHelper.h \
+  /usr/include/eigen3/Eigen/src/Core/util/Memory.h \
+  /usr/include/eigen3/Eigen/src/Core/util/IntegralConstant.h \
+  /usr/include/eigen3/Eigen/src/Core/util/SymbolicIndex.h \
+  /usr/include/eigen3/Eigen/src/Core/NumTraits.h \
+  /usr/include/eigen3/Eigen/src/Core/MathFunctions.h \
+  /usr/include/eigen3/Eigen/src/Core/GenericPacketMath.h \
+  /usr/include/eigen3/Eigen/src/Core/MathFunctionsImpl.h \
+  /usr/include/eigen3/Eigen/src/Core/arch/Default/ConjHelper.h \
+  /usr/include/eigen3/Eigen/src/Core/arch/Default/Half.h \
+  /usr/include/eigen3/Eigen/src/Core/arch/Default/BFloat16.h \
+  /usr/include/eigen3/Eigen/src/Core/arch/Default/TypeCasting.h \
+  /usr/include/eigen3/Eigen/src/Core/arch/Default/GenericPacketMathFunctionsFwd.h \
+  /usr/include/eigen3/Eigen/src/Core/arch/SSE/PacketMath.h \
+  /usr/include/eigen3/Eigen/src/Core/arch/SSE/TypeCasting.h \
+  /usr/include/eigen3/Eigen/src/Core/arch/SSE/MathFunctions.h \
+  /usr/include/eigen3/Eigen/src/Core/arch/SSE/Complex.h \
+  /usr/include/eigen3/Eigen/src/Core/arch/Default/Settings.h \
+  /usr/include/eigen3/Eigen/src/Core/arch/Default/GenericPacketMathFunctions.h \
+  /usr/include/eigen3/Eigen/src/Core/functors/TernaryFunctors.h \
+  /usr/include/eigen3/Eigen/src/Core/functors/BinaryFunctors.h \
+  /usr/include/eigen3/Eigen/src/Core/functors/UnaryFunctors.h \
+  /usr/include/eigen3/Eigen/src/Core/functors/NullaryFunctors.h \
+  /usr/include/eigen3/Eigen/src/Core/functors/StlFunctors.h \
+  /usr/include/eigen3/Eigen/src/Core/functors/AssignmentFunctors.h \
+  /usr/include/eigen3/Eigen/src/Core/util/IndexedViewHelper.h \
+  /usr/include/eigen3/Eigen/src/Core/util/ReshapedHelper.h \
+  /usr/include/eigen3/Eigen/src/Core/ArithmeticSequence.h \
+  /usr/include/eigen3/Eigen/src/Core/IO.h \
+  /usr/include/eigen3/Eigen/src/Core/DenseCoeffsBase.h \
+  /usr/include/eigen3/Eigen/src/Core/DenseBase.h \
+  /usr/include/eigen3/Eigen/src/plugins/CommonCwiseUnaryOps.h \
+  /usr/include/eigen3/Eigen/src/plugins/BlockMethods.h \
+  /usr/include/eigen3/Eigen/src/plugins/IndexedViewMethods.h \
+  /usr/include/eigen3/Eigen/src/plugins/IndexedViewMethods.h \
+  /usr/include/eigen3/Eigen/src/plugins/ReshapedMethods.h \
+  /usr/include/eigen3/Eigen/src/plugins/ReshapedMethods.h \
+  /usr/include/eigen3/Eigen/src/Core/MatrixBase.h \
+  /usr/include/eigen3/Eigen/src/plugins/CommonCwiseBinaryOps.h \
+  /usr/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h \
+  /usr/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h \
+  /usr/include/eigen3/Eigen/src/Core/EigenBase.h \
+  /usr/include/eigen3/Eigen/src/Core/Product.h \
+  /usr/include/eigen3/Eigen/src/Core/CoreEvaluators.h \
+  /usr/include/eigen3/Eigen/src/Core/AssignEvaluator.h \
+  /usr/include/eigen3/Eigen/src/Core/Assign.h \
+  /usr/include/eigen3/Eigen/src/Core/ArrayBase.h \
+  /usr/include/eigen3/Eigen/src/plugins/ArrayCwiseUnaryOps.h \
+  /usr/include/eigen3/Eigen/src/plugins/ArrayCwiseBinaryOps.h \
+  /usr/include/eigen3/Eigen/src/Core/util/BlasUtil.h \
+  /usr/include/eigen3/Eigen/src/Core/DenseStorage.h \
+  /usr/include/eigen3/Eigen/src/Core/NestByValue.h \
+  /usr/include/eigen3/Eigen/src/Core/ReturnByValue.h \
+  /usr/include/eigen3/Eigen/src/Core/NoAlias.h \
+  /usr/include/eigen3/Eigen/src/Core/PlainObjectBase.h \
+  /usr/include/eigen3/Eigen/src/Core/Matrix.h \
+  /usr/include/eigen3/Eigen/src/Core/Array.h \
+  /usr/include/eigen3/Eigen/src/Core/CwiseTernaryOp.h \
+  /usr/include/eigen3/Eigen/src/Core/CwiseBinaryOp.h \
+  /usr/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h \
+  /usr/include/eigen3/Eigen/src/Core/CwiseNullaryOp.h \
+  /usr/include/eigen3/Eigen/src/Core/CwiseUnaryView.h \
+  /usr/include/eigen3/Eigen/src/Core/SelfCwiseBinaryOp.h \
+  /usr/include/eigen3/Eigen/src/Core/Dot.h \
+  /usr/include/eigen3/Eigen/src/Core/StableNorm.h \
+  /usr/include/eigen3/Eigen/src/Core/Stride.h \
+  /usr/include/eigen3/Eigen/src/Core/MapBase.h \
+  /usr/include/eigen3/Eigen/src/Core/Map.h \
+  /usr/include/eigen3/Eigen/src/Core/Ref.h \
+  /usr/include/eigen3/Eigen/src/Core/Block.h \
+  /usr/include/eigen3/Eigen/src/Core/VectorBlock.h \
+  /usr/include/eigen3/Eigen/src/Core/IndexedView.h \
+  /usr/include/eigen3/Eigen/src/Core/Reshaped.h \
+  /usr/include/eigen3/Eigen/src/Core/Transpose.h \
+  /usr/include/eigen3/Eigen/src/Core/DiagonalMatrix.h \
+  /usr/include/eigen3/Eigen/src/Core/Diagonal.h \
+  /usr/include/eigen3/Eigen/src/Core/DiagonalProduct.h \
+  /usr/include/eigen3/Eigen/src/Core/Redux.h \
+  /usr/include/eigen3/Eigen/src/Core/Visitor.h \
+  /usr/include/eigen3/Eigen/src/Core/Fuzzy.h \
+  /usr/include/eigen3/Eigen/src/Core/Swap.h \
+  /usr/include/eigen3/Eigen/src/Core/CommaInitializer.h \
+  /usr/include/eigen3/Eigen/src/Core/GeneralProduct.h \
+  /usr/include/eigen3/Eigen/src/Core/Solve.h \
+  /usr/include/eigen3/Eigen/src/Core/Inverse.h \
+  /usr/include/eigen3/Eigen/src/Core/SolverBase.h \
+  /usr/include/eigen3/Eigen/src/Core/PermutationMatrix.h \
+  /usr/include/eigen3/Eigen/src/Core/Transpositions.h \
+  /usr/include/eigen3/Eigen/src/Core/TriangularMatrix.h \
+  /usr/include/eigen3/Eigen/src/Core/SelfAdjointView.h \
+  /usr/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h \
+  /usr/include/eigen3/Eigen/src/Core/products/Parallelizer.h \
+  /usr/include/c++/11/atomic \
+  /usr/include/eigen3/Eigen/src/Core/ProductEvaluators.h \
+  /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h \
+  /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix.h \
+  /usr/include/eigen3/Eigen/src/Core/SolveTriangular.h \
+  /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h \
+  /usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h \
+  /usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h \
+  /usr/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h \
+  /usr/include/eigen3/Eigen/src/Core/products/SelfadjointRank2Update.h \
+  /usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector.h \
+  /usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h \
+  /usr/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix.h \
+  /usr/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h \
+  /usr/include/eigen3/Eigen/src/Core/BandMatrix.h \
+  /usr/include/eigen3/Eigen/src/Core/CoreIterators.h \
+  /usr/include/eigen3/Eigen/src/Core/ConditionEstimator.h \
+  /usr/include/eigen3/Eigen/src/Core/BooleanRedux.h \
+  /usr/include/eigen3/Eigen/src/Core/Select.h \
+  /usr/include/eigen3/Eigen/src/Core/VectorwiseOp.h \
+  /usr/include/eigen3/Eigen/src/Core/PartialReduxEvaluator.h \
+  /usr/include/eigen3/Eigen/src/Core/Random.h \
+  /usr/include/eigen3/Eigen/src/Core/Replicate.h \
+  /usr/include/eigen3/Eigen/src/Core/Reverse.h \
+  /usr/include/eigen3/Eigen/src/Core/ArrayWrapper.h \
+  /usr/include/eigen3/Eigen/src/Core/StlIterators.h \
+  /usr/include/eigen3/Eigen/src/Core/GlobalFunctions.h \
+  /usr/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h \
+  /usr/include/eigen3/Eigen/LU \
+  /usr/include/eigen3/Eigen/src/misc/Kernel.h \
+  /usr/include/eigen3/Eigen/src/misc/Image.h \
+  /usr/include/eigen3/Eigen/src/LU/FullPivLU.h \
+  /usr/include/eigen3/Eigen/src/LU/PartialPivLU.h \
+  /usr/include/eigen3/Eigen/src/LU/Determinant.h \
+  /usr/include/eigen3/Eigen/src/LU/InverseImpl.h \
+  /usr/include/eigen3/Eigen/src/LU/arch/InverseSize4.h \
+  /usr/include/eigen3/Eigen/Cholesky \
+  /usr/include/eigen3/Eigen/Jacobi \
+  /usr/include/eigen3/Eigen/src/Jacobi/Jacobi.h \
+  /usr/include/eigen3/Eigen/src/Cholesky/LLT.h \
+  /usr/include/eigen3/Eigen/src/Cholesky/LDLT.h \
+  /usr/include/eigen3/Eigen/QR \
+  /usr/include/eigen3/Eigen/Householder \
+  /usr/include/eigen3/Eigen/src/Householder/Householder.h \
+  /usr/include/eigen3/Eigen/src/Householder/HouseholderSequence.h \
+  /usr/include/eigen3/Eigen/src/Householder/BlockHouseholder.h \
+  /usr/include/eigen3/Eigen/src/QR/HouseholderQR.h \
+  /usr/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h \
+  /usr/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h \
+  /usr/include/eigen3/Eigen/src/QR/CompleteOrthogonalDecomposition.h \
+  /usr/include/eigen3/Eigen/SVD \
+  /usr/include/eigen3/Eigen/src/misc/RealSvd2x2.h \
+  /usr/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h \
+  /usr/include/eigen3/Eigen/src/SVD/SVDBase.h \
+  /usr/include/eigen3/Eigen/src/SVD/JacobiSVD.h \
+  /usr/include/eigen3/Eigen/src/SVD/BDCSVD.h \
+  /usr/include/eigen3/Eigen/Geometry \
+  /usr/include/eigen3/Eigen/src/Geometry/OrthoMethods.h \
+  /usr/include/eigen3/Eigen/src/Geometry/EulerAngles.h \
+  /usr/include/eigen3/Eigen/src/Geometry/Homogeneous.h \
+  /usr/include/eigen3/Eigen/src/Geometry/RotationBase.h \
+  /usr/include/eigen3/Eigen/src/Geometry/Rotation2D.h \
+  /usr/include/eigen3/Eigen/src/Geometry/Quaternion.h \
+  /usr/include/eigen3/Eigen/src/Geometry/AngleAxis.h \
+  /usr/include/eigen3/Eigen/src/Geometry/Transform.h \
+  /usr/include/eigen3/Eigen/src/Geometry/Translation.h \
+  /usr/include/eigen3/Eigen/src/Geometry/Scaling.h \
+  /usr/include/eigen3/Eigen/src/Geometry/Hyperplane.h \
+  /usr/include/eigen3/Eigen/src/Geometry/ParametrizedLine.h \
+  /usr/include/eigen3/Eigen/src/Geometry/AlignedBox.h \
+  /usr/include/eigen3/Eigen/src/Geometry/Umeyama.h \
+  /usr/include/eigen3/Eigen/src/Geometry/arch/Geometry_SIMD.h \
+  /usr/include/eigen3/Eigen/Eigenvalues \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/EigenSolver.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
+  /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h
 
 CMakeFiles/vlgc.dir/src/main.cpp.o: /home/stuart/Documents/VA/Verilog-A/src/main.cpp \
   /usr/include/stdc-predef.h \
@@ -3258,9 +3463,203 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /home/stuart/Documents/VA/Verilog-A/src/main.cpp:
 
+/usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h:
+
+/usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h:
+
+/usr/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h:
+
+/usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h:
+
+/usr/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h:
+
+/usr/include/eigen3/Eigen/Eigenvalues:
+
+/usr/include/eigen3/Eigen/src/Geometry/AlignedBox.h:
+
+/usr/include/eigen3/Eigen/src/Geometry/Translation.h:
+
+/usr/include/eigen3/Eigen/src/Geometry/AngleAxis.h:
+
+/usr/include/eigen3/Eigen/src/Geometry/Rotation2D.h:
+
+/usr/include/eigen3/Eigen/src/Geometry/Homogeneous.h:
+
+/usr/include/eigen3/Eigen/src/Geometry/EulerAngles.h:
+
+/usr/include/eigen3/Eigen/src/Geometry/OrthoMethods.h:
+
+/usr/include/eigen3/Eigen/Geometry:
+
+/usr/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h:
+
+/usr/include/eigen3/Eigen/src/QR/CompleteOrthogonalDecomposition.h:
+
+/usr/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h:
+
+/usr/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h:
+
+/usr/include/eigen3/Eigen/src/Householder/Householder.h:
+
+/usr/include/eigen3/Eigen/QR:
+
+/usr/include/eigen3/Eigen/src/Cholesky/LDLT.h:
+
+/usr/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h:
+
+/usr/include/eigen3/Eigen/src/LU/arch/InverseSize4.h:
+
+/usr/include/eigen3/Eigen/src/LU/Determinant.h:
+
+/usr/include/eigen3/Eigen/src/misc/Image.h:
+
+/usr/include/eigen3/Eigen/src/misc/Kernel.h:
+
+/usr/include/eigen3/Eigen/LU:
+
+/usr/include/eigen3/Eigen/src/Core/StlIterators.h:
+
+/usr/include/eigen3/Eigen/src/Core/Reverse.h:
+
+/usr/include/eigen3/Eigen/src/Core/VectorwiseOp.h:
+
+/usr/include/eigen3/Eigen/src/Core/Select.h:
+
+/usr/include/eigen3/Eigen/src/misc/RealSvd2x2.h:
+
+/usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector.h:
+
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h:
+
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix.h:
+
+/usr/include/eigen3/Eigen/src/LU/InverseImpl.h:
+
+/usr/include/eigen3/Eigen/src/Core/products/Parallelizer.h:
+
+/usr/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h:
+
+/usr/include/eigen3/Eigen/src/Core/SelfAdjointView.h:
+
+/usr/include/eigen3/Eigen/src/Core/TriangularMatrix.h:
+
+/usr/include/eigen3/Eigen/src/Core/PermutationMatrix.h:
+
+/usr/include/eigen3/Eigen/src/Core/Inverse.h:
+
+/usr/include/eigen3/Eigen/src/Core/GeneralProduct.h:
+
+/usr/include/eigen3/Eigen/src/Core/CommaInitializer.h:
+
+/usr/include/eigen3/Eigen/src/Core/Redux.h:
+
+/usr/include/eigen3/Eigen/src/Core/DiagonalProduct.h:
+
+/usr/include/eigen3/Eigen/src/Core/DiagonalMatrix.h:
+
+/usr/include/eigen3/Eigen/src/Core/Transpose.h:
+
+/usr/include/eigen3/Eigen/src/Core/Reshaped.h:
+
+/usr/include/eigen3/Eigen/src/Core/Map.h:
+
+/usr/include/eigen3/Eigen/src/Core/MapBase.h:
+
+/usr/include/eigen3/Eigen/src/QR/HouseholderQR.h:
+
+/usr/include/eigen3/Eigen/src/Core/Stride.h:
+
+/usr/include/eigen3/Eigen/src/Core/StableNorm.h:
+
+/usr/include/eigen3/Eigen/src/Core/SelfCwiseBinaryOp.h:
+
+/usr/include/eigen3/Eigen/src/Core/CwiseUnaryView.h:
+
+/usr/include/eigen3/Eigen/src/Core/CwiseBinaryOp.h:
+
+/usr/include/eigen3/Eigen/src/Core/Array.h:
+
+/usr/include/eigen3/Eigen/src/Core/Matrix.h:
+
+/usr/include/eigen3/Eigen/src/Core/PlainObjectBase.h:
+
+/usr/include/eigen3/Eigen/src/Core/ReturnByValue.h:
+
+/usr/include/eigen3/Eigen/src/Core/DenseStorage.h:
+
+/usr/include/eigen3/Eigen/src/Core/util/BlasUtil.h:
+
+/usr/include/eigen3/Eigen/src/Core/Product.h:
+
+/usr/include/eigen3/Eigen/src/plugins/CommonCwiseBinaryOps.h:
+
+/usr/include/eigen3/Eigen/src/Core/MatrixBase.h:
+
+/usr/include/eigen3/Eigen/src/plugins/IndexedViewMethods.h:
+
+/usr/include/eigen3/Eigen/src/Core/AssignEvaluator.h:
+
+/usr/include/eigen3/Eigen/src/plugins/BlockMethods.h:
+
+/usr/include/eigen3/Eigen/src/Core/IO.h:
+
+/usr/include/eigen3/Eigen/src/Core/ArithmeticSequence.h:
+
+/usr/include/eigen3/Eigen/src/Core/util/ReshapedHelper.h:
+
+/usr/include/eigen3/Eigen/src/Core/functors/AssignmentFunctors.h:
+
+/usr/include/eigen3/Eigen/src/Core/functors/StlFunctors.h:
+
+/usr/include/eigen3/Eigen/src/plugins/CommonCwiseUnaryOps.h:
+
+/usr/include/eigen3/Eigen/src/Core/functors/BinaryFunctors.h:
+
+/usr/include/eigen3/Eigen/src/Householder/BlockHouseholder.h:
+
+/usr/include/eigen3/Eigen/src/Core/functors/TernaryFunctors.h:
+
+/usr/include/eigen3/Eigen/src/LU/FullPivLU.h:
+
+/usr/include/eigen3/Eigen/src/Core/arch/SSE/Complex.h:
+
+/usr/include/eigen3/Eigen/src/Core/arch/Default/GenericPacketMathFunctions.h:
+
+/usr/include/eigen3/Eigen/src/Core/arch/SSE/PacketMath.h:
+
+/usr/include/eigen3/Eigen/src/Core/arch/Default/TypeCasting.h:
+
+/usr/include/eigen3/Eigen/src/Core/arch/Default/Settings.h:
+
+/usr/include/eigen3/Eigen/src/Core/arch/Default/Half.h:
+
+/usr/include/eigen3/Eigen/src/Core/MathFunctionsImpl.h:
+
+/usr/include/eigen3/Eigen/src/Core/util/IntegralConstant.h:
+
+/usr/include/eigen3/Eigen/src/Core/util/Memory.h:
+
+/usr/include/eigen3/Eigen/src/Core/util/StaticAssert.h:
+
+/usr/include/eigen3/Eigen/src/Core/util/Meta.h:
+
+/usr/include/eigen3/Eigen/src/Core/util/MKL_support.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/11/include/xmmintrin.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/11/include/emmintrin.h:
+
+/usr/include/eigen3/Eigen/src/Core/util/ConfigureVectorization.h:
+
+/usr/include/eigen3/Eigen/Dense:
+
 /usr/include/cppad/local/graph/json_writer.hpp:
 
+/usr/include/eigen3/Eigen/src/Core/CoreIterators.h:
+
 /usr/include/cppad/core/graph/to_json.hpp:
+
+/usr/include/eigen3/Eigen/src/Geometry/Scaling.h:
 
 /usr/include/cppad/core/abs_normal_fun.hpp:
 
@@ -3279,6 +3678,10 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/cppad/core/hessian.hpp:
 
 /usr/include/cppad/core/jacobian.hpp:
+
+/usr/include/eigen3/Eigen/src/SVD/BDCSVD.h:
+
+/usr/include/eigen3/Eigen/src/plugins/ArrayCwiseBinaryOps.h:
 
 /usr/include/cppad/core/drivers.hpp:
 
@@ -3316,6 +3719,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/x86_64-linux-gnu/bits/confname.h:
 
+/usr/include/eigen3/Eigen/src/Core/util/SymbolicIndex.h:
+
 /usr/include/x86_64-linux-gnu/bits/environments.h:
 
 /usr/include/x86_64-linux-gnu/bits/posix_opt.h:
@@ -3336,6 +3741,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/cppad/core/abort_recording.hpp:
 
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointRank2Update.h:
+
 /usr/include/cppad/core/base2ad.hpp:
 
 /usr/include/cppad/core/fun_construct.hpp:
@@ -3348,6 +3755,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/cppad/local/sweep/call_atomic.hpp:
 
+/usr/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h:
+
 /usr/include/cppad/local/play/atom_op_info.hpp:
 
 /usr/include/cppad/local/sweep/forward0.hpp:
@@ -3356,11 +3765,15 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/cppad/local/subgraph/arg_variable.hpp:
 
+/usr/include/eigen3/Eigen/src/Core/Replicate.h:
+
 /usr/include/cppad/local/graph/cpp_graph_itr.hpp:
 
 /usr/include/cppad/local/tanh_op.hpp:
 
 /usr/include/cppad/local/tan_op.hpp:
+
+/usr/include/eigen3/Eigen/src/plugins/ReshapedMethods.h:
 
 /usr/include/cppad/local/subgraph/init_rev.hpp:
 
@@ -3370,9 +3783,13 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/cppad/local/sqrt_op.hpp:
 
+/usr/include/eigen3/Eigen/src/Core/EigenBase.h:
+
 /usr/include/cppad/local/sinh_op.hpp:
 
 /usr/include/cppad/local/sin_op.hpp:
+
+/usr/include/eigen3/Eigen/Core:
 
 /usr/include/cppad/local/sign_op.hpp:
 
@@ -3384,11 +3801,15 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/cppad/local/log_op.hpp:
 
+/usr/include/eigen3/Eigen/src/Core/util/IndexedViewHelper.h:
+
 /usr/include/cppad/local/sub_op.hpp:
 
 /usr/include/cppad/local/div_op.hpp:
 
 /usr/include/cppad/local/cskip_op.hpp:
+
+/usr/include/eigen3/Eigen/src/Core/NumTraits.h:
 
 /usr/include/cppad/local/cond_op.hpp:
 
@@ -3412,6 +3833,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/cppad/core/bool_fun.hpp:
 
+/usr/include/eigen3/Eigen/src/Core/ArrayBase.h:
+
 /usr/include/cppad/core/near_equal_ext.hpp:
 
 /usr/include/cppad/core/bool_valued.hpp:
@@ -3419,6 +3842,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/cppad/core/chkpoint_one/set_jac_sparse_set.hpp:
 
 /usr/include/cppad/core/chkpoint_one/set_jac_sparse_bool.hpp:
+
+/usr/include/eigen3/Eigen/src/Core/util/Constants.h:
 
 /usr/include/cppad/core/chkpoint_one/set_hes_sparse_bool.hpp:
 
@@ -3432,7 +3857,11 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/cppad/core/chkpoint_one/reverse.hpp:
 
+/usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h:
+
 /usr/include/cppad/core/chkpoint_one/ctor.hpp:
+
+/usr/include/eigen3/Eigen/src/Core/CoreEvaluators.h:
 
 /usr/include/cppad/core/atomic/two_clear.hpp:
 
@@ -3450,6 +3879,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/bits/stl_list.h:
 
+/usr/lib/gcc/x86_64-linux-gnu/11/include/mmintrin.h:
+
 /usr/include/c++/11/list:
 
 /usr/include/cppad/local/sparse/list_setvec.hpp:
@@ -3465,6 +3896,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/cppad/core/chkpoint_two/forward.hpp:
 
 /usr/include/cppad/core/chkpoint_two/for_type.hpp:
+
+/usr/include/eigen3/Eigen/src/Core/IndexedView.h:
 
 /usr/include/cppad/core/chkpoint_two/dynamic.hpp:
 
@@ -3483,6 +3916,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/cppad/core/discrete/discrete.hpp:
 
 /usr/include/cppad/core/cond_exp.hpp:
+
+/usr/include/eigen3/Eigen/src/Geometry/Quaternion.h:
 
 /usr/include/cppad/core/azmul.hpp:
 
@@ -3508,11 +3943,15 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/cppad/core/ad_ctor.hpp:
 
+/usr/include/eigen3/Eigen/src/Core/arch/Default/BFloat16.h:
+
 /usr/include/cppad/core/user_ad.hpp:
 
 /usr/include/cppad/local/discrete_op.hpp:
 
 /usr/include/cppad/local/atom_state.hpp:
+
+/usr/include/eigen3/Eigen/src/Core/util/XprHelper.h:
 
 /usr/include/cppad/local/play/random_setup.hpp:
 
@@ -3538,6 +3977,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/cppad/core/ad_type.hpp:
 
+/usr/include/eigen3/Eigen/src/Core/functors/NullaryFunctors.h:
+
 /usr/include/cppad/local/is_pod.hpp:
 
 /usr/include/cppad/local/pod_vector.hpp:
@@ -3551,6 +3992,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/cppad/core/add_eq.hpp:
 
 /usr/include/cppad/core/ad.hpp:
+
+/usr/include/eigen3/Eigen/src/Core/NoAlias.h:
 
 /usr/include/cppad/utility/time_test.hpp:
 
@@ -3574,6 +4017,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/cppad/local/utility/cppad_vector_itr.hpp:
 
+/usr/include/eigen3/Eigen/src/Core/SolverBase.h:
+
 /usr/include/cppad/utility/vector.hpp:
 
 /usr/include/cppad/utility/ode_err_control.hpp:
@@ -3581,6 +4026,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/cppad/core/mul_eq.hpp:
 
 /usr/include/cppad/utility/track_new_del.hpp:
+
+/usr/include/eigen3/Eigen/src/Core/arch/SSE/MathFunctions.h:
 
 /usr/include/cppad/utility/omp_alloc.hpp:
 
@@ -3609,6 +4056,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/c++/11/memory:
 
 /usr/include/x86_64-linux-gnu/bits/string_fortified.h:
+
+/usr/include/eigen3/Eigen/src/Core/Random.h:
 
 /usr/include/c++/11/bits/locale_conv.h:
 
@@ -3640,6 +4089,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/bits/refwrap.h:
 
+/usr/include/eigen3/Eigen/src/Core/functors/UnaryFunctors.h:
+
 /usr/include/cppad/core/atomic/three_ctor.hpp:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/support/Declarations.h:
@@ -3658,11 +4109,17 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/bits/stl_algo.h:
 
+/usr/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h:
+
+/usr/include/eigen3/Eigen/src/plugins/ArrayCwiseUnaryOps.h:
+
 /usr/include/cppad/local/optimize/hash_code.hpp:
 
 /usr/include/c++/11/bits/fstream.tcc:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h:
+
+/usr/include/eigen3/Eigen/src/Core/GenericPacketMath.h:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h:
 
@@ -3686,6 +4143,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/bits/basic_ios.tcc:
 
+/usr/include/eigen3/Eigen/src/Geometry/RotationBase.h:
+
 /usr/include/c++/11/bits/codecvt.h:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/ctype_inline.h:
@@ -3694,15 +4153,23 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/bits/locale_facets.h:
 
+/usr/include/eigen3/Eigen/src/Core/BandMatrix.h:
+
 /usr/include/c++/11/bits/exception.h:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/atn/AtomTransition.h:
+
+/usr/include/eigen3/Eigen/src/Core/Swap.h:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/messages_members.h:
 
 /usr/include/c++/11/bits/basic_ios.h:
 
+/usr/include/eigen3/Eigen/src/Cholesky/LLT.h:
+
 /usr/include/c++/11/bits/uniform_int_dist.h:
+
+/usr/include/eigen3/Eigen/SVD:
 
 /home/stuart/Documents/VA/Verilog-A/src/jacobian_builder.h:
 
@@ -3724,9 +4191,15 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/exception:
 
+/usr/include/eigen3/Eigen/src/Geometry/Umeyama.h:
+
 /usr/include/c++/11/sstream:
 
 /usr/include/c++/11/bits/ios_base.h:
+
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h:
+
+/usr/include/eigen3/Eigen/src/Core/CwiseTernaryOp.h:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/misc/IntervalSet.h:
 
@@ -3735,6 +4208,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/c++/11/bits/erase_if.h:
 
 /usr/include/stdint.h:
+
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h:
 
 /usr/include/c++/11/bits/uses_allocator.h:
 
@@ -3790,6 +4265,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/stdio.h:
 
+/usr/include/eigen3/Eigen/src/Geometry/arch/Geometry_SIMD.h:
+
 /usr/include/c++/11/cstdio:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/atn/OrderedATNConfigSet.h:
@@ -3808,7 +4285,11 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/bits/fs_path.h:
 
+/usr/include/eigen3/Eigen/Jacobi:
+
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/tree/ParseTreeType.h:
+
+/usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h:
 
 /usr/include/cppad/core/opt_val_hes.hpp:
 
@@ -3857,6 +4338,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/internal/Synchronization.h:
 
 /usr/include/c++/11/algorithm:
+
+/usr/include/eigen3/Eigen/src/Core/arch/SSE/TypeCasting.h:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/tree/Trees.h:
 
@@ -3909,6 +4392,10 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/cppad/core/bender_quad.hpp:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/atn/LexerIndexedCustomAction.h:
+
+/usr/include/eigen3/Eigen/src/Jacobi/Jacobi.h:
+
+/usr/include/eigen3/Eigen/src/LU/PartialPivLU.h:
 
 /usr/include/cppad/local/subgraph/info.hpp:
 
@@ -3982,13 +4469,19 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/atn/RangeTransition.h:
 
+/usr/include/eigen3/Eigen/src/Geometry/Transform.h:
+
 /usr/include/x86_64-linux-gnu/gnu/stubs.h:
 
 /usr/include/c++/11/set:
 
 /home/stuart/Documents/VA/Verilog-A/src/jacobian_builder.cpp:
 
+/usr/include/eigen3/Eigen/src/Core/ArrayWrapper.h:
+
 /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
+
+/usr/include/eigen3/Eigen/src/Core/SolveTriangular.h:
 
 /usr/include/cppad/utility/ode_gear.hpp:
 
@@ -3998,6 +4491,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/debug/assertions.h:
 
+/usr/include/eigen3/Eigen/src/Core/CwiseNullaryOp.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/11/include/stdarg.h:
@@ -4006,7 +4501,13 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/chrono:
 
+/usr/include/eigen3/Eigen/src/Core/PartialReduxEvaluator.h:
+
+/usr/include/eigen3/Eigen/src/Core/arch/Default/ConjHelper.h:
+
 /usr/include/x86_64-linux-gnu/bits/timex.h:
+
+/usr/include/eigen3/Eigen/src/Core/Fuzzy.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
 
@@ -4037,6 +4538,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/features-time64.h:
 
 /usr/include/c++/11/debug/debug.h:
+
+/usr/include/eigen3/Eigen/src/Householder/HouseholderSequence.h:
 
 /usr/include/cppad/core/vec_ad/vec_ad.hpp:
 
@@ -4076,6 +4579,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/bits/alloc_traits.h:
 
+/usr/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h:
+
 /usr/include/stdc-predef.h:
 
 /usr/include/c++/11/deque:
@@ -4085,6 +4590,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
 
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
+
+/usr/include/eigen3/Eigen/src/Eigenvalues/EigenSolver.h:
 
 /usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
 
@@ -4124,6 +4631,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/x86_64-linux-gnu/bits/types/FILE.h:
 
+/usr/include/eigen3/Eigen/src/Core/ProductEvaluators.h:
+
 /usr/include/c++/11/unordered_set:
 
 /usr/include/cppad/utility/near_equal.hpp:
@@ -4131,6 +4640,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/c++/11/bits/memoryfwd.h:
 
 /usr/include/c++/11/bits/stl_function.h:
+
+/usr/include/eigen3/Eigen/Householder:
 
 /usr/include/cppad/core/atomic/two_rev_depend.hpp:
 
@@ -4140,9 +4651,13 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/bits/stringfwd.h:
 
+/usr/include/eigen3/Eigen/Cholesky:
+
 /usr/include/c++/11/bits/invoke.h:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/misc/MurmurHash.h:
+
+/usr/include/eigen3/Eigen/src/Geometry/Hyperplane.h:
 
 /usr/include/cppad/core/integer.hpp:
 
@@ -4158,6 +4673,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/RuntimeMetaData.h:
 
+/usr/include/eigen3/Eigen/src/Core/ConditionEstimator.h:
+
 /usr/include/cppad/utility/check_simple_vector.hpp:
 
 /usr/include/cppad/core/sub_eq.hpp:
@@ -4165,6 +4682,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/cppad/core/unary_plus.hpp:
 
 /usr/include/c++/11/ext/numeric_traits.h:
+
+/usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h:
 
 /usr/include/cppad/core/compound_assign.hpp:
 
@@ -4177,6 +4696,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/c++/11/cmath:
 
 /usr/include/c++/11/pstl/pstl_config.h:
+
+/usr/include/eigen3/Eigen/src/Core/Ref.h:
 
 /usr/include/cppad/utility/set_union.hpp:
 
@@ -4197,6 +4718,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/c++/11/ext/type_traits.h:
 
 /usr/include/c++/11/ctime:
+
+/usr/lib/gcc/x86_64-linux-gnu/11/include/mm_malloc.h:
 
 /usr/include/cppad/local/sweep/for_hes.hpp:
 
@@ -4314,6 +4837,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/bits/shared_ptr_base.h:
 
+/usr/include/eigen3/Eigen/src/Core/MathFunctions.h:
+
 /usr/include/cppad/local/op.hpp:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/BaseErrorListener.h:
@@ -4326,6 +4851,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/pthread.h:
 
+/usr/include/eigen3/Eigen/src/Core/Dot.h:
+
 /usr/include/cppad/core/chkpoint_two/ctor.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/cpu-set.h:
@@ -4336,13 +4863,21 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
+/usr/include/eigen3/Eigen/src/Core/Diagonal.h:
+
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/UnbufferedCharStream.h:
 
 /usr/include/c++/11/bits/locale_facets_nonio.tcc:
 
 /usr/include/c++/11/bits/stl_pair.h:
 
+/usr/include/eigen3/Eigen/src/SVD/SVDBase.h:
+
+/usr/include/eigen3/Eigen/src/Core/DenseBase.h:
+
 /usr/include/c++/11/ext/atomicity.h:
+
+/usr/include/eigen3/Eigen/src/SVD/JacobiSVD.h:
 
 /usr/include/cppad/core/sparse_jac.hpp:
 
@@ -4350,7 +4885,11 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
 
+/usr/include/eigen3/Eigen/src/Core/Assign.h:
+
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
+
+/usr/include/eigen3/Eigen/src/Core/Visitor.h:
 
 /usr/include/c++/11/ext/new_allocator.h:
 
@@ -4359,6 +4898,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/c++/11/cctype:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/BufferedTokenStream.h:
+
+/usr/include/eigen3/Eigen/src/Core/DenseCoeffsBase.h:
 
 /usr/include/c++/11/bits/stl_iterator_base_types.h:
 
@@ -4377,6 +4918,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/cppad/core/num_skip.hpp:
 
 /usr/include/c++/11/fstream:
+
+/usr/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h:
 
 /usr/include/c++/11/bits/algorithmfwd.h:
 
@@ -4426,6 +4969,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/bits/regex_compiler.h:
 
+/usr/include/eigen3/Eigen/src/Core/Block.h:
+
 /usr/include/cppad/local/optimize/get_op_usage.hpp:
 
 /usr/include/c++/11/bits/regex_executor.h:
@@ -4464,11 +5009,15 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/x86_64-linux-gnu/bits/math-vector.h:
 
+/usr/include/eigen3/Eigen/src/Core/arch/Default/GenericPacketMathFunctionsFwd.h:
+
 /usr/include/cppad/local/optimize/optimize_run.hpp:
 
 /usr/include/cppad/configure.hpp:
 
 /usr/include/c++/11/optional:
+
+/usr/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h:
 
 /usr/include/c++/11/bits/ostream.tcc:
 
@@ -4522,9 +5071,13 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/DefaultErrorStrategy.h:
 
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h:
+
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/CommonToken.h:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/NoViableAltException.h:
+
+/usr/include/eigen3/Eigen/src/Geometry/ParametrizedLine.h:
 
 /usr/include/c++/11/cstring:
 
@@ -4539,6 +5092,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/CommonTokenFactory.h:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/TokenFactory.h:
+
+/usr/include/eigen3/Eigen/src/Core/util/Macros.h:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/atn/DecisionState.h:
 
@@ -4590,6 +5145,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/shared_mutex:
 
+/usr/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix.h:
+
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/TokenSource.h:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/LexerInterpreter.h:
@@ -4622,6 +5179,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/UnbufferedTokenStream.h:
 
+/usr/include/eigen3/Eigen/src/Core/VectorBlock.h:
+
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/LexerNoViableAltException.h:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/support/BitSet.h:
@@ -4631,6 +5190,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/ListTokenSource.h:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/RuleContextWithAltNum.h:
+
+/usr/include/eigen3/Eigen/src/Core/GlobalFunctions.h:
 
 /usr/include/cppad/local/comp_op.hpp:
 
@@ -4768,6 +5329,10 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/c++/11/tr1/ell_integral.tcc:
 
+/usr/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h:
+
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h:
+
 /usr/include/c++/11/bits/regex_executor.tcc:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/atn/StarLoopbackState.h:
@@ -4779,6 +5344,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/dfa/DFA.h:
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/misc/InterpreterDataReader.h:
+
+/usr/include/eigen3/Eigen/src/Core/BooleanRedux.h:
 
 /usr/include/cppad/core/value.hpp:
 
@@ -4810,7 +5377,11 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/tree/pattern/RuleTagToken.h:
 
+/usr/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h:
+
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/tree/pattern/TagChunk.h:
+
+/usr/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h:
 
 /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h:
 
@@ -4841,6 +5412,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/x86_64-linux-gnu/asm/errno.h:
 
 /home/stuart/Documents/VA/Verilog-A/generated/VerilogParserVisitor.h:
+
+/usr/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h:
 
 /usr/include/cppad/core/convert.hpp:
 
@@ -4890,6 +5463,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 
 /usr/include/cppad/base_require.hpp:
 
+/usr/include/eigen3/Eigen/src/Core/NestByValue.h:
+
 /home/stuart/vcpkg/installed/x64-linux/include/antlr4-runtime/tree/ErrorNode.h:
 
 /usr/include/c++/11/tr1/modified_bessel_func.tcc:
@@ -4899,6 +5474,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/c++/11/cerrno:
 
 /usr/include/cppad/cppad.hpp:
+
+/usr/include/eigen3/Eigen/src/Core/Transpositions.h:
 
 /usr/include/cppad/core/base_cond_exp.hpp:
 
@@ -4911,6 +5488,8 @@ CMakeFiles/vlgc.dir/src/verilog_a_parser.cpp.o: /home/stuart/Documents/VA/Verilo
 /usr/include/c++/11/istream:
 
 /usr/include/cppad/core/base_float.hpp:
+
+/usr/include/eigen3/Eigen/src/Core/Solve.h:
 
 /usr/include/cppad/core/base_double.hpp:
 
