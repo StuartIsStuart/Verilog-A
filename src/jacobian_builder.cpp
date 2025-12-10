@@ -782,21 +782,6 @@ void JacobianBuilder::collectNeededBranches(ResidualConstructionState& state){
 
 //build the CppAD tape (once). This records expression graph with AD<double>
 void JacobianBuilder::buildTape(){
-    //auto indeps = symtab.independentIndices();
-    //std::cerr << "DEBUG symtab.size()=" << symtab.size() << " n=" << n << " indeps:";
-    //for (int i=0;i<(int)indeps.size();++i){
-    //   int sidx = indeps[i];
-    //   std::cerr << " var" << i << "->symIdx=" << sidx << " name=" << symtab[sidx].name;
-    //}
-    //std::cerr << "\n";
-
-    //std::cerr << "DEBUG symToVarIndex (len=" << symToVarIndex.size() << "):\n";
-    //for (size_t i=0;i<symToVarIndex.size();++i){
-    //   std::cerr << "  symIdx=" << i << " -> var=" << symToVarIndex[i];
-    //   if (symToVarIndex[i] >= 0 && symToVarIndex[i] < (int)indeps.size())
-    //       std::cerr << " (ind name=" << symtab[indeps[symToVarIndex[i]]].name << ")";
-    //   std::cerr << "\n";
-    //}
 
     using AD = JacobianBuilder::AD;
 
@@ -808,10 +793,14 @@ void JacobianBuilder::buildTape(){
     //start recording
     CppAD::Independent(ax);
 
-    //build prevValues placeholder (all zeros) for recording; ddt uses numeric prev only
-    std::vector<double> prevPlaceholder(symtab.size(), 0.0);
-    double dt_placeholder = 1.0; //arbitrary non-zero to avoid divide-by-zero during recording
-
+    //build prevValues placeholder
+    std::vector<double> prevPlaceholder;
+    double dt_placeholder = 1e-6; //arbitrary non-zero to avoid divide-by-zero during recording
+    for (size_t i = 0; i < indIndices.size(); ++i) {
+        int idx = indIndices[i];
+        const Symbol& s = symtab[idx];
+        prevPlaceholder.push_back(s.pastValue);
+    }
     //evaluate residuals in AD domain
     std::vector<AD> ay;
     ay.reserve(m);
@@ -1029,6 +1018,7 @@ T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const st
                     }
                     prev = this->evalExpr<double>(fc->args[0], tmpAx, symToVar, prevValues, dt);
                 }
+                std::cout << "dt: " << dt << " cur:" << std::endl;
                 if (dt == 0.0) return cur;
                 return (cur - asT(prev)) / asT(dt);
             }

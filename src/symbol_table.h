@@ -8,13 +8,13 @@
 struct Symbol {
     std::string name;
     double value = 0.0;         // parameter or last-known numeric value
+    double pastValue = 0.0;
     bool isIndependent = false; // whether this symbol is part of solver unknowns
 
-    // initial-value bookkeeping
     bool hasInitial = false;       // true if an initial value exists for this symbol
     double initialValue = 0.0;     // the initial value
     bool initialFromUser = false;  // true if initial came from user / simulator runtime
-    bool initialFromSource = false;// true if initial came from source/AST (parameter, ic-like)
+    bool initialFromSource = false;// true if initial came from source/AST
     bool isFixed = false;
 };
 
@@ -40,13 +40,14 @@ public:
         std::cout << std::endl;
     }
     // add symbol or return existing index
-    int addSymbol(const std::string &name, bool independent=false, double value=0.0) {
+    int addSymbol(const std::string &name, bool independent=false, double value=0.0, double past =0.0) {
         auto it = nameToIndex.find(name);
         if (it != nameToIndex.end()) return it->second;
         int idx = (int)symbols.size();
         Symbol s;
         s.name = name;
         s.value = value;
+        s.pastValue = past;
         s.isIndependent = independent;
         symbols.push_back(std::move(s));
         nameToIndex[name] = idx;
@@ -115,6 +116,15 @@ public:
     void setValue(const std::string &name, double v) {
         int idx = find(name);
         if (idx >= 0) symbols[idx].value = v;
+    }
+
+    void setValuePast(int idx, double v) {
+        if (idx < 0 || idx >= (int)symbols.size()) return;
+        symbols[idx].pastValue = v;
+    }
+    void setValuePast(const std::string &name, double v) {
+        int idx = find(name);
+        if (idx >= 0) symbols[idx].pastValue = v;
     }
 
     // initial-value helpers

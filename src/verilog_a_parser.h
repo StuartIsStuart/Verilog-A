@@ -27,7 +27,7 @@ public:
     // Symbol table and Jacobian builder for a specific module
     std::shared_ptr<SymbolTable> getSymbolTable(const std::string& moduleName) const;
     std::shared_ptr<JacobianBuilder> getJacobianBuilder(const std::string& moduleName) const;
-    std::vector<double> make_X_vector(const std::string& moduleName) const;
+    void make_X_vector(const std::string& moduleName, std::vector<double>& x_current, std::vector<double>& x_past);
     std::vector<std::string> get_unknowns(const std::string& moduleName) const;
     // Get all available module names
     std::vector<std::string> getModuleNames() const;
@@ -35,9 +35,9 @@ public:
     // Set user initial conditions
     void setUserInitials(const std::unordered_map<std::string, double>& initials);
     
+    void setUserInitialsPast(const std::unordered_map<std::string, double>& initials);
     // Evaluate a specific module
     bool evaluateModule(std::vector<double> x_current, const std::string& moduleName, std::vector<double>& residuals, std::vector<double>& jacobian_flat);
-
     // Get current variable values for a module
     std::vector<double> getCurrentValues(const std::string& moduleName) const;
     std::vector<std::string> getPorts(const std::string& moduleName);
@@ -65,6 +65,7 @@ private:
     
     std::unordered_map<std::string, ModuleData> module_data_;
     std::unordered_map<std::string, double> user_initials_;
+    std::unordered_map<std::string, double> user_initials_past_;
     std::string error_message_;
     std::unordered_map<std::string, double> user_fixed_;
     

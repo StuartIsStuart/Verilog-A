@@ -6,6 +6,70 @@
 #include <antlr4-runtime/antlr4-runtime.h>
 #include "VerilogLexer.h"
 #include "VerilogParser.h"
+#include <antlr4-runtime.h>
+#include <sstream>
+#include <iostream>
+
+class CustomErrorListener : public antlr4::BaseErrorListener {
+private:
+    const std::string& sourceCode;
+    const std::string& filename;
+    const std::vector<int>& lineLengths;   // Vector of line lengths for each included file
+    const std::vector<std::string>& includes;  // Vector of include file names
+    
+public:
+    CustomErrorListener(const std::string& src, const std::string& fname,
+                       const std::vector<int>& lengths,
+                       const std::vector<std::string>& inc) 
+        : sourceCode(src), filename(fname), 
+          lineLengths(lengths), includes(inc) {}
+    
+    void syntaxError(antlr4::Recognizer* recognizer, antlr4::Token* offendingSymbol,
+                     size_t line, size_t charPositionInLine,
+                     const std::string& msg, std::exception_ptr e) override {
+        
+        std::string issueFile = filename;
+        int lineCorrected = line -1;
+        for(int i = 0; i <includes.size(); i++){
+            lineCorrected++;
+            if(line < lineLengths[i+1]) {
+                lineCorrected = lineCorrected - lineLengths[i];
+                if( i == includes.size() -1){
+                    issueFile = filename;
+                }else{
+                    issueFile = includes[i+1];
+                }
+                break;
+            }
+        }
+        line = line - 1;
+        //extract the line from source code
+        std::istringstream stream(sourceCode);
+        std::string sourceLine;
+        size_t currentLine = 1;
+        
+        while (std::getline(stream, sourceLine)) {
+            if (currentLine == line) {
+                break;
+            }
+            currentLine++;
+        }
+        
+        // Print formatted error message
+        std::cerr << "\n══════════════════════════════════════════════════════════\n";
+        std::cerr << "Error in " << issueFile << " at line " << lineCorrected << ":\n";
+        std::cerr << "══════════════════════════════════════════════════════════\n\n";
+        std::cerr << lineCorrected << " | " << sourceLine << "\n";
+        
+        
+        std::cerr << "\nError: " << msg << "\n";
+        std::cerr << "══════════════════════════════════════════════════════════\n\n";
+        
+        // You can also throw an exception if you want to stop parsing
+        // throw std::runtime_error("Parsing error");
+    }
+};
+
 using namespace antlr4;
 
 VerilogAParser::VerilogAParser() {
@@ -33,16 +97,23 @@ bool VerilogAParser::parseString(const std::string& source, const std::string& f
         //preprocess
         Preprocessor prep("");
         std::string preprocessed = prep.processString(source, filename);
-        
+        std::string originalSource = preprocessed;
         //ANTLR parsing
         ANTLRInputStream input(preprocessed);
         VerilogLexer lexer(&input);
         CommonTokenStream tokens(&lexer);
         VerilogParser parser(&tokens);
-        
+
+        //remove old error listeners
+        lexer.removeErrorListeners();
+        parser.removeErrorListeners();
+
+        //add custom error listener
+        CustomErrorListener errorListener(originalSource, filename, prep.lineNumbers, prep.fileNames);
+        lexer.addErrorListener(&errorListener);
+        parser.addErrorListener(&errorListener);
         tokens.fill();
         tree::ParseTree* tree = parser.source_text();
-        
         //build AST
         ASTBuilder builder;
         builder.visit(tree);
@@ -56,17 +127,6 @@ bool VerilogAParser::parseString(const std::string& source, const std::string& f
             setError("No modules found in Verilog-A source");
             return false;
         }
-        
-        // // Build symbol tables and Jacobian builders for all modules
-        // for (auto& mod : modules_) {
-        //     if (!buildSymbolTableForModule(mod)) {
-        //         return false;
-        //     }
-        //     if (!buildJacobianForModule(mod)) {
-        //         return false;
-        //     }
-        // }
-        
         
         return true;
         
@@ -140,7 +200,17 @@ bool VerilogAParser::buildSymbolTableForModule(const std::shared_ptr<ModuleDecl>
             }
         }
     }
-    
+    for (auto& kv : user_initials_past_) {//For ddt and idt
+        const std::string& name = kv.first;
+        double val = kv.second;
+        int idx = symtab->find(name);
+        if (idx == -1) {
+            idx = symtab->addSymbol(name, true /* independent */, 0, val);
+        } else {
+            // Only set initial guess if node is not fixed
+            symtab->setValuePast(idx, val);
+        }
+    }
     module_data_[mod->name].symtab = symtab;
     return true;
 }
@@ -254,6 +324,9 @@ std::vector<std::string> VerilogAParser::getModuleNames() const {//get name of a
 void VerilogAParser::setUserInitials(const std::unordered_map<std::string, double>& initials) {
     user_initials_ = initials;
 }
+void VerilogAParser::setUserInitialsPast(const std::unordered_map<std::string, double>& initials) {
+    user_initials_past_ = initials;
+}
 const std::shared_ptr<ModuleDecl>& VerilogAParser::getModule(const std::string& moduleName) {
     for (const auto& mod : modules_) {
         if(mod->name == moduleName){return mod;}
@@ -302,6 +375,8 @@ std::vector<double> VerilogAParser::getCurrentValues(const std::string& moduleNa
     return {};
 }
 
+
+
 void VerilogAParser::printAST(std::ostream& os) const {//print ast, disciplines and natures
     for (auto& m : modules_) {
         m->dump(os, 0);
@@ -330,18 +405,17 @@ void VerilogAParser::printSymbolTable(const std::string& moduleName, std::ostrea
     }
 }
 
-std::vector<double> VerilogAParser::make_X_vector(const std::string& moduleName) const {
+void VerilogAParser::make_X_vector(const std::string& moduleName, std::vector<double>& x_current, std::vector<double>& x_past) {
     auto symtab = getSymbolTable(moduleName);
-    std::vector<double> x_current;
     if (symtab) {
         auto indep = symtab->independentIndices();
         for (size_t i = 0; i < indep.size(); ++i) {
             int idx = indep[i];
             const Symbol& s = (*symtab)[idx];
             x_current.push_back(s.value);
+            x_past.push_back(s.pastValue);
         }
     }
-    return x_current;
 }
 
 bool VerilogAParser::evaluateModuleWithoutBranchCurrents(const std::string& moduleName, std::vector<double>& residuals, std::vector<double>& jacobian_flat, std::vector<std::string>& unknowns_out) {
@@ -360,12 +434,13 @@ bool VerilogAParser::evaluateModuleWithoutBranchCurrents(const std::string& modu
     }
     
     try {
-        std::vector<double> prevValues(data.symtab->size(), 0.0);
         double t = 0.0;//add time setting
         double dt = 1e-6;
-        std::vector<double> x_current = make_X_vector(moduleName);
+        std::vector<double> x_current;
+        std::vector<double> x_past;
+        make_X_vector(moduleName, x_current, x_past);
         std::vector<std::string> unknowns = get_unknowns(moduleName);
-        data.jacobian_builder->evaluateWithoutBranchCurrents(unknowns, unknowns_out, x_current, t, dt, prevValues, residuals, jacobian_flat);
+        data.jacobian_builder->evaluateWithoutBranchCurrents(unknowns, unknowns_out, x_current, t, dt, x_past, residuals, jacobian_flat);
         return true;
         
     } catch (const std::exception& e) {

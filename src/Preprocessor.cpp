@@ -12,6 +12,8 @@ Preprocessor::Preprocessor(const std::string &baseDir) : baseDir_(baseDir) {
 
 std::string Preprocessor::processString(const std::string &src, const std::string &filename) {
     std::set<std::string> included;
+    fileNames = {};
+    lineNumbers ={};
     if (!filename.empty()) {
         std::string path = filename;
         // if filename is relative, use baseDir_
@@ -59,7 +61,7 @@ std::string Preprocessor::processLines(const std::string &text, const std::strin
     std::istringstream iss(text);
     std::string line;
     std::ostringstream out;
-
+    int lineSize =0;
     enum IfState { INCLUDE, EXCLUDE };
     std::vector<IfState> ifstack;
     bool current_enabled = true;
@@ -77,6 +79,7 @@ std::string Preprocessor::processLines(const std::string &text, const std::strin
             if (current_enabled) {
                 std::string incfile = m[1].str();
                 std::string full = joinPath(curDir, incfile);
+                fileNames.push_back(incfile);
                 out << processFile(full, included);
             }
             continue;
@@ -146,10 +149,14 @@ std::string Preprocessor::processLines(const std::string &text, const std::strin
                 outline.push_back(line[i]);
             }
         }
-
+        lineSize++;
         out << outline << "\n";
     }
-
+    if(lineNumbers.size() == 0) {
+        lineNumbers.push_back(lineSize);
+    } else {
+        lineNumbers.push_back(lineSize + lineNumbers.back());
+    }
     return out.str();
 }
 

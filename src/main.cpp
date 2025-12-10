@@ -3,7 +3,7 @@
 using AD = CppAD::AD<double>;
 
 int toy(){
-    std::string fileName = "tests/test1.va"; //verilog-a file
+    std::string fileName = "tests/test7.va"; //verilog-a file
     VerilogAParser parser; //Create the parser object
     if (!parser.parseFile(fileName)) { //Parse the verilog file
         std::cerr << "Failed to parse file: " << parser.getErrorMessage() << std::endl;
@@ -12,19 +12,24 @@ int toy(){
     for (const auto& moduleName : parser.getModuleNames()) {//Process each module (typically there is one module per file but this allows for multiple)
         std::unordered_map<std::string, double> userInitials;//Create userInitials and userFixed to populate jacobian
         std::unordered_map<std::string, double> userFixed;
+        std::unordered_map<std::string, double> userPast; //for ddt and idt
         std::vector<std::string> ports = parser.getPorts(moduleName);//Get the ports of the module
         // for(auto& port: ports) {//In this example i am setting all ports as "unknowns" with an initial value of 0
         //     userInitials[port] = 0;
         // }
-        // userInitials["d"] = 0.4;
-        // userInitials["g"] = 1.2;
-        // userInitials["s"] = 0;
-        // userInitials["b"] = 0;
-        userInitials["a"] = 500;
+        userInitials["d"] = 0.4;
+        userInitials["g"] = 1.2;
+        userInitials["s"] = 0;
         userInitials["b"] = 0;
-        userInitials["I(a,b)"] = 0.10016742;
+        // userInitials["a"] = 500;
+        // userInitials["b"] = 0;
+        // userInitials["I(a,b)"] = 0.1;
+        // userPast["a"] = 0;
+        // userPast["b"] = 0;
+        // userPast["I(a,b)"] = 0.01;
         parser.setUserInitials(userInitials);//Set initial values for ports, done here
         parser.setUserFixed(userFixed);//    as this allows for conditionals to be used
+        parser.setUserInitialsPast(userPast);
         parser.buildSymbolTableAndJacobianForModule(moduleName);// build the jacobian and symbol table
         std::vector<double> residuals;
         std::vector<double> jacobian_flat;
@@ -145,7 +150,9 @@ int main(int argc, char** argv) {
         parser.buildSymbolTableAndJacobianForModule(moduleName);// build the jacobian and symbol table
         std::vector<double> residuals;
         std::vector<double> jacobian_flat;
-        std::vector<double> x_current = parser.make_X_vector(moduleName);
+        std::vector<double> x_current;
+        std::vector<double> x_past;
+        parser.make_X_vector(moduleName, x_current, x_past);
         for(auto& i : x_current){
             std::cout << i << std::endl;
         }

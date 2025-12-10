@@ -4,12 +4,14 @@
 #include <string>
 #include <unordered_map>
 #include <set>
+#include <vector>
 
 class Preprocessor {
 public:
     explicit Preprocessor(const std::string &baseDir = "");
-    std::string processString(const std::string &src, const std::string &filename = "");//?
-
+    std::string processString(const std::string &src, const std::string &filename = "");
+    std::vector<std::string> fileNames;
+    std::vector<int> lineNumbers;
 private:
     std::unordered_map<std::string, std::string> macros_;
     std::string baseDir_;

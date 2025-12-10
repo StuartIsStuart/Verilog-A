@@ -14,7 +14,6 @@ public:
     std::vector<std::shared_ptr<DisciplineDecl>> disciplines;
     std::vector<std::shared_ptr<NatureDecl>> natures;
 
-    // Add these new visitor methods
     virtual antlrcpp::Any visitConditional_statement(VerilogParser::Conditional_statementContext *ctx) override;
     virtual antlrcpp::Any visitSeq_block(VerilogParser::Seq_blockContext *ctx) override;
     virtual antlrcpp::Any visitStatement(VerilogParser::StatementContext *ctx) override;
