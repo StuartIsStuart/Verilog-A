@@ -7,6 +7,34 @@
 #include <unordered_set>
 #include <functional>
 using namespace Eigen;
+static std::string exprToString(const ExprPtr& expr) {
+    if (!expr) return "nullptr";
+    
+    if (auto id = dynamic_cast<IdentifierExpr*>(expr.get())) {
+        return id->name;
+    }
+    if (auto num = dynamic_cast<NumberExpr*>(expr.get())) {
+        std::ostringstream oss;
+        oss << num->value;
+        return oss.str();
+    }
+    if (auto be = dynamic_cast<BinaryExpr*>(expr.get())) {
+        return "(" + exprToString(be->left) + " " + be->op + " " + exprToString(be->right) + ")";
+    }
+    if (auto fc = dynamic_cast<FunctionCallExpr*>(expr.get())) {
+        std::string result = fc->name + "(";
+        for (size_t i = 0; i < fc->args.size(); ++i) {
+            result += exprToString(fc->args[i]);
+            if (i + 1 < fc->args.size()) result += ", ";
+        }
+        result += ")";
+        return result;
+    }
+    if (auto ue = dynamic_cast<UnaryExpr*>(expr.get())) {
+        return ue->op + exprToString(ue->operand);
+    }
+    return "unknown_expr";
+}
 void JacobianBuilder::substituteUserValues() {
     std::unordered_map<std::string, double> fixedValues;
     for (int i = 0; i < symtab.size(); ++i) {
@@ -226,20 +254,10 @@ void JacobianBuilder::constructResidualExprs(){
     
     //Step 4: Build final residual vector
     buildFinalResidualVector(state);
-
+    //Step 5: Substitute values
     substituteUserValues();
     
     m = (int)residualExprs.size();
-    
-    //std::cerr << "constructResidualExprs(): residualExprs.size() = " << residualExprs.size() << "\n";
-    //std::cerr << "final independent residual ASTs:\n";
-    //auto indepIdxs = symtab.independentIndices();
-    //for (size_t i = 0; i < indepIdxs.size(); ++i){
-    //   int sidx = indepIdxs[i];
-    //   std::cerr << " residual for var" << i << " symIdx=" << sidx << " name=" << symtab[sidx].name << " :\n";
-    //   if (residualExprs[i]) residualExprs[i]->dump(std::cerr, 4);
-    //   else std::cerr << "  <null>\n";
-    //}
 }
 void JacobianBuilder::normaliseAssignments(ResidualConstructionState& state){
     state.lhs_transformed.resize(assigns.size());
@@ -264,16 +282,10 @@ bool JacobianBuilder::processAssignment(size_t index, ResidualConstructionState&
 
     ExprPtr L = state.lhs_transformed[index];
     ExprPtr R = state.rhs_transformed[index] ? state.rhs_transformed[index] : makeNumber(0.0);
-
-    //std::cerr << " assign[" << index << "] transformed LHS= ";
-    //if (L) L->dump(std::cerr, 4); else std::cerr << "<null>\n";
-    //std::cerr << "                RHS= ";
-    //if (R) R->dump(std::cerr, 4); else std::cerr << "<null>\n";
-
     //Try different patterns in order
     if (processVNodePattern(L, R, state)) return true;
     if (processVNodesPattern(L, R, state)) return true;
-    if (processCurrentSourcePattern(L, R, state)) return true;  // NEW: Handle current sources
+    if (processCurrentSourcePattern(L, R, state)) return true; 
     //If no pattern matched, process as fallback
     processFallbackResidual(L, R, state);
     return true;
@@ -314,7 +326,6 @@ bool JacobianBuilder::processVNodesPattern(const ExprPtr& L, const ExprPtr& R, R
             std::string nameA = a0->name;
             std::string nameB = a1->name;
             
-            //if (processResistorLikePattern(L, R, nameA, nameB, state)) return true; //Simplify maybe?
             if (processGenericBranchPattern(L, R, nameA, nameB, state)) return true;
         }
     }
@@ -330,16 +341,6 @@ ExprPtr JacobianBuilder::negateExpr(const ExprPtr& expr) const {
     return std::make_shared<BinaryExpr>(std::string("*"), makeNumber(-1.0), expr);
 }
 
-// void JacobianBuilder::addToNodeResidual(const std::string& nodeName, const ExprPtr& term, ResidualConstructionState& state){
-//     if (nodeName.empty() || !term) return;
-//     auto it = state.nodeResidualsMap.find(nodeName);
-//     if (it == state.nodeResidualsMap.end()){
-//         state.nodeResidualsMap[nodeName] = term;
-//     } else {
-//         it->second = std::make_shared<BinaryExpr>(std::string("+"), it->second, term);
-//     }
-// }
-
 void JacobianBuilder::addToNodeResidual(const std::string& nodeName, const ExprPtr& term, ResidualConstructionState& state){
     if (nodeName.empty() || !term) return;
     
@@ -350,57 +351,6 @@ void JacobianBuilder::addToNodeResidual(const std::string& nodeName, const ExprP
         it->second = std::make_shared<BinaryExpr>(std::string("+"), it->second, term);
     }
 }
-
-
-//Check for resistor-like pattern: R * I(a,b)
-bool JacobianBuilder::processResistorLikePattern(const ExprPtr& L, const ExprPtr& R, const std::string& nameA, const std::string& nameB, ResidualConstructionState& state){
-    BranchAnalyser analyser(state.branchMap);
-    ExprPtr factorExpr = nullptr;
-    
-    if (auto be = std::dynamic_pointer_cast<BinaryExpr>(R)){
-        if (analyser.isBranchIdentifier(be->left, nameA, nameB)){
-            factorExpr = be->right;
-        } else if (analyser.isBranchIdentifier(be->right, nameA, nameB)){
-            factorExpr = be->left;
-        }
-    } else if (analyser.isBranchIdentifier(R, nameA, nameB)){
-        factorExpr = makeNumber(1.0);
-    }
-    
-    if (!factorExpr) return false;
-    
-    //Lower to (Va - Vb) / factor → add to node residuals
-    auto va = std::make_shared<IdentifierExpr>(nameA);
-    auto vb = std::make_shared<IdentifierExpr>(nameB);
-    auto diff = std::make_shared<BinaryExpr>(std::string("-"), va, vb);
-    auto term = std::make_shared<BinaryExpr>(std::string("/"), diff, factorExpr);
-    
-    addToNodeResidual(nameA, term, state);
-    addToNodeResidual(nameB, negateExpr(term), state);
-    
-    //Mark branch as eliminated
-    std::function<void(const ExprPtr&)> markIfBranchId = [&](const ExprPtr& ex){
-        if (!ex) return;
-        if (auto id = std::dynamic_pointer_cast<IdentifierExpr>(ex)){
-            auto it = state.branchMap.find(id->name);
-            if (it != state.branchMap.end() && it->second.first == nameA && it->second.second == nameB){
-                state.eliminatedBranches.insert(id->name);
-            }
-        } else if (auto be2 = std::dynamic_pointer_cast<BinaryExpr>(ex)){
-            markIfBranchId(be2->left);
-            markIfBranchId(be2->right);
-        } else if (auto fc2 = std::dynamic_pointer_cast<FunctionCallExpr>(ex)){
-            for (auto& arg : fc2->args) markIfBranchId(arg);
-        } else if (auto ue2 = std::dynamic_pointer_cast<UnaryExpr>(ex)){
-            markIfBranchId(ue2->operand);
-        }
-    };
-    markIfBranchId(R);
-    
-    //std::cerr << "lowered resistor-like pattern between nodes '" << nameA << "' and '" << nameB << "'\n";
-    return true;
-}
-
 
 
 bool JacobianBuilder::processCurrentSourcePattern(const ExprPtr& L, const ExprPtr& R, ResidualConstructionState& state){
@@ -460,14 +410,18 @@ bool JacobianBuilder::processCurrentSourcePattern(const ExprPtr& L, const ExprPt
 
 bool JacobianBuilder::processGenericBranchPattern(const ExprPtr& L, const ExprPtr& R, const std::string& nameA, const std::string& nameB, ResidualConstructionState& state){
     //Generic branch handling: V(a,b) = complex_expression
+        std::cout << "DEBUG processGenericBranchPattern called:" << std::endl;
+    std::cout << "  LHS (L): " << exprToString(L) << std::endl;
+    std::cout << "  RHS (R): " << exprToString(R) << std::endl;
+    std::cout << "  nameA: " << nameA << ", nameB: " << nameB << std::endl;
     ExprPtr rhs_transformed = replaceVcallsWithDiff(R, nameA, nameB);
-    
+    std::cout << "  rhs_transformed: " << exprToString(rhs_transformed) << std::endl;
     //Create branch symbol I(a,b)
     std::ostringstream bss;
     bss << "I(" << nameA << "," << nameB << ")";
     std::string branchSym = bss.str();
     ExprPtr branchId = std::make_shared<IdentifierExpr>(branchSym);
-    
+    std::cout << "  branchSym: " << branchSym << std::endl;
     //Stamp KCL: +I into node A, -I into node B
     addToNodeResidual(nameA, branchId, state);
     
@@ -477,8 +431,10 @@ bool JacobianBuilder::processGenericBranchPattern(const ExprPtr& L, const ExprPt
     auto va = std::make_shared<IdentifierExpr>(nameA);
     auto vb = std::make_shared<IdentifierExpr>(nameB);
     auto diff = std::make_shared<BinaryExpr>(std::string("-"), va, vb);
+    std::cout << "  diff (Va-Vb): " << exprToString(diff) << std::endl;
+    std::cout << "  rhs_transformed (should be R*ddt(I)): " << exprToString(rhs_transformed) << std::endl;
     ExprPtr branchRes = std::make_shared<BinaryExpr>(std::string("-"), diff, rhs_transformed);
-    
+    std::cout << "  branchRes (diff - rhs): " << exprToString(branchRes) << std::endl;
     state.pendingBranchResiduals[branchSym] = branchRes;
     state.neededBranches.insert(branchSym);
     
@@ -486,22 +442,6 @@ bool JacobianBuilder::processGenericBranchPattern(const ExprPtr& L, const ExprPt
 }
 
 
-// void JacobianBuilder::buildFinalResidualVector(ResidualConstructionState& state) {
-//     // Convert nodeResidualsMap into vector indexed by symbol index
-//     std::vector<ExprPtr> nodeResiduals(symtab.size(), nullptr);
-    
-//     for (auto& kv : state.nodeResidualsMap) {
-//         const std::string& nodeName = kv.first;
-//         ExprPtr expr = kv.second;
-//         int idx = symtab.find(nodeName);
-//         if (idx >= 0 && idx < (int)nodeResiduals.size()) {
-//             if (!nodeResiduals[idx]) {
-//                 nodeResiduals[idx] = expr;
-//             } else {
-//                 nodeResiduals[idx] = std::make_shared<BinaryExpr>(std::string("+"), nodeResiduals[idx], expr);
-//             }
-//         }
-//     }
 void JacobianBuilder::buildFinalResidualVector(ResidualConstructionState& state) {
     
     // Convert nodeResidualsMap into vector indexed by symbol index
@@ -794,18 +734,12 @@ void JacobianBuilder::buildTape(){
     CppAD::Independent(ax);
 
     //build prevValues placeholder
-    std::vector<double> prevPlaceholder;
     double dt_placeholder = 1e-6; //arbitrary non-zero to avoid divide-by-zero during recording
-    for (size_t i = 0; i < indIndices.size(); ++i) {
-        int idx = indIndices[i];
-        const Symbol& s = symtab[idx];
-        prevPlaceholder.push_back(s.pastValue);
-    }
     //evaluate residuals in AD domain
     std::vector<AD> ay;
     ay.reserve(m);
     for (int i = 0; i < m; ++i){
-        AD r = evalExpr<AD>(residualExprs[i], ax, symToVarIndex, prevPlaceholder, dt_placeholder);
+        AD r = evalExpr<AD>(residualExprs[i], ax, symToVarIndex, false, dt_placeholder);
         ay.push_back(r);
     }
     f = CppAD::ADFun<double>(ax, ay);
@@ -960,7 +894,7 @@ void JacobianBuilder::evaluateWithoutBranchCurrents(const std::vector<std::strin
 
 
 template<typename T>
-T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const std::vector<int> &symToVar, const std::vector<double> &prevValues, double dt){
+T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const std::vector<int> &symToVar, const bool inDeriv, double dt){
     //convenience lambda to convert double to T
     auto asT = [](double v) -> T { return T(v); };
 
@@ -980,6 +914,9 @@ T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const st
             int varPos = symToVar[idx];
             if (varPos >= 0){
                 //independent return ax[varPos]
+                if (inDeriv) {
+                    return asT(symtab[idx].pastValue);
+                }
                 return ax[varPos];
             } else {
                 //parameter/known value
@@ -1006,21 +943,11 @@ T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const st
         //IMPORTANT ddt(x) — compute (cur - prev)/dt
         if (fname == "ddt" || fname == "deriv"){
             if (fc->args.size() >= 1){
-                T cur = evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt);
-                double prev = 0.0;
-                {
-                    std::vector<double> tmpAx(ax.size());
-                    for (int s = 0; s < (int)symToVar.size(); ++s){
-                        int pos = symToVar[s];
-                        if (pos >= 0 && pos < (int)tmpAx.size()){
-                            tmpAx[pos] = (s < (int)prevValues.size()) ? prevValues[s] : symtab[s].value;
-                        }
-                    }
-                    prev = this->evalExpr<double>(fc->args[0], tmpAx, symToVar, prevValues, dt);
-                }
+                T cur = evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt);
+                T prev = evalExpr<T>(fc->args[0], ax, symToVar, true, dt);
                 std::cout << "dt: " << dt << " cur:" << std::endl;
                 if (dt == 0.0) return cur;
-                return (cur - asT(prev)) / asT(dt);
+                return ((cur - prev) / asT(dt));
             }
             return asT(0.0);
         }
@@ -1028,11 +955,11 @@ T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const st
         //V(nodeA, nodeB) -> Va - Vb
         if (fname == "v"){
             if (fc->args.size() == 1){
-                return evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt);
+                return evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt);
             }
             if (fc->args.size() >= 2){
-                T a = evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt);
-                T b = evalExpr<T>(fc->args[1], ax, symToVar, prevValues, dt);
+                T a = evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt);
+                T b = evalExpr<T>(fc->args[1], ax, symToVar, inDeriv, dt);
                 return a - b;
             }
             return asT(0.0);
@@ -1040,47 +967,47 @@ T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const st
 
         //Maths functions: sin, cos, ect
         if (fname == "sin"){
-            auto arg = evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt);
+            auto arg = evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt);
             return CppAD::sin(arg);
         }
 
         if (fname == "cos"){
-            return CppAD::cos(evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt));
+            return CppAD::cos(evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt));
         }
         if (fname == "tan"){
-            return CppAD::tan(evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt));
+            return CppAD::tan(evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt));
         }
         if (fname == "asin"){
-            return CppAD::asin(evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt));
+            return CppAD::asin(evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt));
         }
         if (fname == "acos"){
-            return CppAD::acos(evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt));
+            return CppAD::acos(evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt));
         }
         if (fname == "atan"){
-            return CppAD::atan(evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt));
+            return CppAD::atan(evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt));
         }
         if (fname == "sinh"){
-            return CppAD::sinh(evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt));
+            return CppAD::sinh(evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt));
         }
         if (fname == "cosh"){
-            return CppAD::cosh(evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt));
+            return CppAD::cosh(evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt));
         }
         if (fname == "exp"){
-            return CppAD::exp(evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt));
+            return CppAD::exp(evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt));
         }
         if (fname == "log" || fname == "ln"){
-            return CppAD::log(evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt));
+            return CppAD::log(evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt));
         }
         if (fname == "sqrt"){
-            return CppAD::sqrt(evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt));
+            return CppAD::sqrt(evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt));
         }
         if (fname == "abs" || fname == "fabs"){
-            return CppAD::abs(evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt));
+            return CppAD::abs(evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt));
         }
         if (fname == "pow"){
             if (fc->args.size() >= 2){
-                T base = evalExpr<T>(fc->args[0], ax, symToVar, prevValues, dt);
-                T expn = evalExpr<T>(fc->args[1], ax, symToVar, prevValues, dt);
+                T base = evalExpr<T>(fc->args[0], ax, symToVar, inDeriv, dt);
+                T expn = evalExpr<T>(fc->args[1], ax, symToVar, inDeriv, dt);
                 return CppAD::pow(base, expn);
             }
             return asT(0.0);
@@ -1121,14 +1048,14 @@ T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const st
         }
 
         // unknown function, evaluate arguments and return 0
-        for (auto &arg : fc->args) evalExpr<T>(arg, ax, symToVar, prevValues, dt);
+        for (auto &arg : fc->args) evalExpr<T>(arg, ax, symToVar, inDeriv, dt);
         return asT(0.0);
     }
 
     //BinaryExpr
     if (auto be = dynamic_cast<BinaryExpr*>(e.get())){
-        T L = evalExpr<T>(be->left, ax, symToVar, prevValues, dt);
-        T R = evalExpr<T>(be->right, ax, symToVar, prevValues, dt);
+        T L = evalExpr<T>(be->left, ax, symToVar, inDeriv, dt);
+        T R = evalExpr<T>(be->right, ax, symToVar, inDeriv, dt);
         const std::string &op = be->op;
         if (op == "+") return L + R;
         if (op == "-") return L - R;
@@ -1141,7 +1068,7 @@ T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const st
 
     //UnaryExpr
     if (auto ue = dynamic_cast<UnaryExpr*>(e.get())){
-        T v = evalExpr<T>(ue->operand, ax, symToVar, prevValues, dt);
+        T v = evalExpr<T>(ue->operand, ax, symToVar, inDeriv, dt);
         if (ue->op == "+") return v;
         if (ue->op == "-") return -v;
         //other unary ops?
@@ -1162,11 +1089,11 @@ T JacobianBuilder::evalExpr(const ExprPtr &e, const std::vector<T> &ax, const st
         }
 
         //Evaluate the condition expression as a double using actual ax values
-        double condVal = evalExpr<double>(te->cond, ax_for_cond, symToVar, prevValues, dt);
+        double condVal = evalExpr<double>(te->cond, ax_for_cond, symToVar, inDeriv, dt);
 
         // Choose branch based on numeric condition; evaluate branch in type T so AD works correctly.
-        if (condVal != 0.0) return evalExpr<T>(te->ifTrue, ax, symToVar, prevValues, dt);
-        else return evalExpr<T>(te->ifFalse, ax, symToVar, prevValues, dt);
+        if (condVal != 0.0) return evalExpr<T>(te->ifTrue, ax, symToVar, inDeriv, dt);
+        else return evalExpr<T>(te->ifFalse, ax, symToVar, inDeriv, dt);
     }
 
 
@@ -1178,12 +1105,12 @@ template double JacobianBuilder::evalExpr<double>(
     const ExprPtr &,
     const std::vector<double> &,
     const std::vector<int> &,
-    const std::vector<double> &,
+    bool,
     double);
 
 template JacobianBuilder::AD JacobianBuilder::evalExpr<JacobianBuilder::AD>(
     const ExprPtr &,
     const std::vector<JacobianBuilder::AD> &,
     const std::vector<int> &,
-    const std::vector<double> &,
+    bool ,
     double);

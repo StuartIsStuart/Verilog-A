@@ -3,40 +3,40 @@
 using AD = CppAD::AD<double>;
 
 int toy(){
-    std::string fileName = "tests/test7.va"; //verilog-a file
+    std::string fileName = "tests/test1.va"; //verilog-a file
     VerilogAParser parser; //Create the parser object
     if (!parser.parseFile(fileName)) { //Parse the verilog file
         std::cerr << "Failed to parse file: " << parser.getErrorMessage() << std::endl;
         return 1;
     }
     for (const auto& moduleName : parser.getModuleNames()) {//Process each module (typically there is one module per file but this allows for multiple)
-        std::unordered_map<std::string, double> userInitials;//Create userInitials and userFixed to populate jacobian
-        std::unordered_map<std::string, double> userFixed;
-        std::unordered_map<std::string, double> userPast; //for ddt and idt
+        std::unordered_map<std::string, double> userInitials, userFixed, userPast;//Create userInitials and userFixed to populate jacobian. userPast for ddt
         std::vector<std::string> ports = parser.getPorts(moduleName);//Get the ports of the module
         // for(auto& port: ports) {//In this example i am setting all ports as "unknowns" with an initial value of 0
         //     userInitials[port] = 0;
-        // }
-        userInitials["d"] = 0.4;
-        userInitials["g"] = 1.2;
-        userInitials["s"] = 0;
-        userInitials["b"] = 0;
-        // userInitials["a"] = 500;
+        // // }
+        // userInitials["d"] = 0.4;
+        // userInitials["g"] = 1.2;
+        // userInitials["s"] = 0;
         // userInitials["b"] = 0;
-        // userInitials["I(a,b)"] = 0.1;
-        // userPast["a"] = 0;
-        // userPast["b"] = 0;
-        // userPast["I(a,b)"] = 0.01;
+        userInitials["a"] = 30;
+        userInitials["b"] = 10;
+        userInitials["I(a,b)"] = 1.0;
+        userPast["a"] = 11;
+        userPast["b"] = 1;
+        userPast["I(a,b)"] = 1.0;
         parser.setUserInitials(userInitials);//Set initial values for ports, done here
         parser.setUserFixed(userFixed);//    as this allows for conditionals to be used
         parser.setUserInitialsPast(userPast);
         parser.buildSymbolTableAndJacobianForModule(moduleName);// build the jacobian and symbol table
-        std::vector<double> residuals;
-        std::vector<double> jacobian_flat;
-        std::vector<std::string> unknowns;
+        std::vector<double> residuals, jacobian_flat; std::vector<std::string> unknowns;
         if (!parser.evaluateModuleWithoutBranchCurrents(moduleName, residuals, jacobian_flat, unknowns)) {//evaluate modual
             std::cerr << "Failed to evaluate module " << moduleName << ": " << parser.getErrorMessage() << std::endl;
         }
+
+
+
+
         // Prints to show
         for(auto& port : ports){
             std::cout << "Port: " << port << std::endl;
@@ -71,6 +71,7 @@ int main(int argc, char** argv) {
     //parse command line arguments
     std::unordered_map<std::string, double> userInitials;//Create userInitials and userFixed to populate jacobian
     std::unordered_map<std::string, double> userFixed;
+    std::unordered_map<std::string, double> userPast;
     const std::string initPrefix = "--init=";
     const std::string fixedPrefix = "--fixed=";
     for (int i = 1; i < argc; ++i) {
@@ -144,9 +145,15 @@ int main(int argc, char** argv) {
         //userInitials["I(a,src)"]= 0.099;
         //userInitials["I(src,b)"]= 0.099;
         //userInitials["I(a,b)"]= -1.2e-05;
-
+        userInitials["a"] = 10;
+        userInitials["b"] = 0;
+        userInitials["I(a,b)"] = 1.0;
+        userPast["a"] = 0;
+        userPast["b"] = 0;
+        userPast["I(a,b)"] = 1.0;
         parser.setUserInitials(userInitials);//Set initial values for ports, done here
         parser.setUserFixed(userFixed);//    as this allows for conditionals to be used
+        parser.setUserInitialsPast(userPast);
         parser.buildSymbolTableAndJacobianForModule(moduleName);// build the jacobian and symbol table
         std::vector<double> residuals;
         std::vector<double> jacobian_flat;

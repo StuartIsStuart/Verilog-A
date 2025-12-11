@@ -3,8 +3,8 @@
 module R(a, b);
   inout a, b;
   electrical a, b;
-  parameter real R = 5000;
+  parameter real C = 1e-7;
   analog begin
-    V(a,b) <+ (I(a,b))*R;
+    I(a,b) <+(ddt(V(a,b)))*C;
   end
 endmodule

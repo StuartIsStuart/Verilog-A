@@ -56,7 +56,7 @@ private:
     void buildTape();
 
     template<typename T>
-    T evalExpr(const ExprPtr &e, const std::vector<T> &ax, const std::vector<int> &symToVar, const std::vector<double> &prevValues, double dt);
+    T evalExpr(const ExprPtr &e, const std::vector<T> &ax, const std::vector<int> &symToVar, bool inDeriv, double dt);
 private:
     struct ResidualConstructionState {
         std::unordered_map<std::string, std::pair<std::string, std::string>> branchMap;
